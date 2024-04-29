@@ -132,6 +132,7 @@ public:
     vector<vector<WeightPara>>* get_FreeWeight( );
     vector<vector<int>>* get_Paratogeometry( );
     VectorXd* get_dielectric_old( );
+    VectorXd get_dielectrics_copy();
     VectorXd* get_diel_old_max( );
 
     tuple<VectorXd, VectorXcd> devx_and_Adevxp(double epsilon, double origin);

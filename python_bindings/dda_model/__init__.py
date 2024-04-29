@@ -190,9 +190,11 @@ class DDAModelWrapper:
     @property
     def parameters(self):
         return self._model.getParameters()
+    
+    def allParameters(self):
+        return self._model.getDielectrics()
 
     @parameters.setter
     def parameters(self, value):
         # TODO: Shape / type conversion from input array.
-        filter_max_iteration = 1
-        self._model.setParameters(value, filter_max_iteration)
+        self._model.setParameters(value)

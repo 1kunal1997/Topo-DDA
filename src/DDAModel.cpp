@@ -1311,6 +1311,11 @@ VectorXd DDAModel::get_parameter_copy( ) {
     return parameters;
 }
 
+// Making this return a copy, temporarily, to get python bindings to work.
+VectorXd DDAModel::get_dielectrics_copy( ) {
+    return dielectric_old;
+}
+
 VectorXd* DDAModel::get_Para_origin( ) {
     if ( !Filter ) {
         cout << "ERROR: SpacePara::get_Para_origin()--Filter can not be false" << endl;
