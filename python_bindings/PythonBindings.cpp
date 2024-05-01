@@ -65,5 +65,6 @@ PYBIND11_MODULE(_dda_model, module) { // NOLINT
         // Getters and setters for the parameters.
         .def("setParameters", &DDAModel::UpdateParameters)
         .def("getParameters", &DDAModel::get_parameter_copy)
-        .def("getDielectrics", &DDAModel::get_dielectrics_copy);
+        .def("getDielectrics", &DDAModel::get_dielectrics_copy)
+        .def("getElectricField", &DDAModel::get_EResult);
 }

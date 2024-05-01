@@ -1224,6 +1224,10 @@ void DDAModel::output_to_file(string save_position, int iteration) {
     fout.close();
 }
 
+VectorXcd DDAModel::get_EResult() {
+    return EResult;
+}
+
 double DDAModel::get_beta( ) {
     return Filterstats->get_beta( );
 }

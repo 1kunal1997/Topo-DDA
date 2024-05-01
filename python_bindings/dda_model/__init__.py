@@ -193,6 +193,9 @@ class DDAModelWrapper:
     
     def allParameters(self):
         return self._model.getDielectrics()
+    
+    def getElectricField(self):
+        return self._model.getElectricField()
 
     @parameters.setter
     def parameters(self, value):

@@ -2,13 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 posOld = "E:\\Calculations\\2024April27\\HourglassFromTestSuite\\CoreStructure\\"
-posNew = "E:\\Calculations\\2024April27\\HourglassUsingWrapper2\\CoreStructure\\"
+posNew = "E:\\Calculations\\2024April30\\HourglassWithPlottingDictionary2\\Structures\\"
 
 all_errors = [0]*400
 
 for i in range(400):
     corestructureold = np.loadtxt(posOld + "CoreStructure" + str(i) + ".txt")
-    corestructurenew = np.loadtxt(posNew + "CoreStructure" + str(i) + ".txt")
+    corestructurenew = np.loadtxt(posNew + "Structure" + str(i) + ".txt")
 
     for j in range(len(corestructurenew)):
         all_errors[i] += abs(corestructureold[j] - corestructurenew[j])

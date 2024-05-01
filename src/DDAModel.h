@@ -134,6 +134,7 @@ public:
     VectorXd* get_dielectric_old( );
     VectorXd get_dielectrics_copy();
     VectorXd* get_diel_old_max( );
+    VectorXcd get_EResult();
 
     tuple<VectorXd, VectorXcd> devx_and_Adevxp(double epsilon, double origin);
     VectorXcd devp(double epsilon, double origin);
