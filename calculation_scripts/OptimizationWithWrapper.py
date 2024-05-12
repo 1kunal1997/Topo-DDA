@@ -1,10 +1,9 @@
 import dda_model
 from dda_model import optimizers
+from dda_model import binarizers
 import numpy as np
-import matplotlib.pyplot as plt
-import os
-import plotting
-import itertools
+import json
+from pathlib import Path
 
 def construct_model():
 
@@ -21,20 +20,6 @@ def construct_model():
     )
     return model
 
-def _generate_geometry(num_x: int, num_y: int, num_z: int):
-    # Geometry is [x y z], major along the first dimension: 0 0 0, 1 0 0, 
-    # 2 0 0 ... num_x 0 0, 0 1 0, 1 1 0, ... 0 num_y 0 etc.
-    mesh = itertools.product(
-        list(range(num_z)),
-        list(range(num_y)),
-        list(range(num_x)),
-    )
-    geometry = np.array(list(mesh))
-    # Reverse indexing required for x-major.
-    geometry = geometry[:,::-1]
-    geometry = geometry.flatten().astype(int)
-    return geometry
-
 def saveCurrentStructure(all_parameters, path, iteration):
     with open(path + '\\Structure_Values\\Structure' + str(iteration) + '.txt', 'w') as f:
         for para in all_parameters:
@@ -50,192 +35,107 @@ def saveCurrentEField(electric_field, path, iteration):
         for field in electric_field:
             f.write(f"{field}\n")
 
-def plotStructuresFunction(geometry, itStart, itEnd, numskip, solid=False):
-    print('new path is: ' + newpath)
-    for i in range(itStart, itEnd):
-        if i % numskip == 0:
-            print('Plotting the ' + str(i) + 'th structure')
-            CoreStructure=np.genfromtxt(os.path.join(newpath+"\\Structure_Values\\Structure"+str(i)+".txt"),dtype=complex)
-            diel=np.real(CoreStructure)
+def createDirectories(path, saveStructuresFlag, saveEFieldsFlag):
+    Path(path).mkdir(parents=True, exist_ok=True)
 
-            if solid:
-                plotting.Shape(geometry, diel, pixel_size, iteration=i, position=newpath+"\\SolidStructures\\", FullLattice=True)
-            else:
-                plotting.Shape(geometry, diel, pixel_size, iteration=i, position=newpath+"\\Structures\\", FullLattice=False)
+    if saveStructuresFlag:
+        Path(path + '\\Structure_Values').mkdir(parents=True, exist_ok=True)
+    if saveEFieldsFlag:
+        Path(path + '\\E-Field_Values').mkdir(parents=True, exist_ok=True)
 
-def plotFieldsFunction(geometry, itStart, itEnd, numskip):
-    ELimit = True
-    ELimitLow = 0
-    ELimitHigh = 16
-    xslice = 11
-    yslice = 11
-    zslice = 9
-    for i in range(itStart, itEnd):
-        if i % numskip == 0:
-            print('Plotting the ' + str(i) + 'th E-Field')
-            E_total=np.genfromtxt(os.path.join(newpath+"\\E-Field_Values\\E-Field"+str(i)+".txt"),dtype=complex)
+def calculatePenalty(parameters, penaltyType):
+    if penaltyType == 'parabolic':
+        return binarizers.gradParabolic(parameters)
+    elif penaltyType == 'gaussian':
+        return binarizers.gradGaussian(parameters, 0.1, 0.5)
+    elif penaltyType == 'triangular':
+        return binarizers.gradTriangular(parameters, 1)
 
-            #TODO: find a way to use the dictionary to combine these. issue is the 'Xslice' parameter
-            if plotXField:
-                plotting.EField_slice(geometry, E_total, pixel_size, Elimit=ELimit, Elimitlow=ELimitLow, Elimithigh=ELimitHigh, iteration=i, Xslice=xslice,position=newpath+"\\E-Field_XSlice\\")
+def calculatePenaltyCoefficient(iteration, evo_max_iter, coeff_min, coeff_max, coeffType):
+    if coeffType == 'piecewise':
+        return binarizers.piecewise_update(iteration, evo_max_iter, coeff_min, coeff_max)
+    elif coeffType == 'linear':
+        return binarizers.linear_update(iteration, evo_max_iter, coeff_min, coeff_max)
+    elif coeffType == 'exp':
+        return binarizers.exp_update(iteration, 299, coeff_min, coeff_max)
 
-            if plotYField:
-                plotting.EField_slice(geometry, E_total, pixel_size, Elimit=ELimit, Elimitlow=ELimitLow, Elimithigh=ELimitHigh, iteration=i, Yslice=yslice, position=newpath+"\\E-Field_YSlice\\")
+with open('config.json') as user_file:
+    parsed_json = json.load(user_file)
 
-            if plotZField:
-                plotting.EField_slice(geometry, E_total, pixel_size, Elimit=ELimit, Elimitlow=ELimitLow, Elimithigh=ELimitHigh, iteration=i, Zslice=zslice, position=newpath+"\\E-Field_ZSlice\\")
-
-            if plotEVectors:
-                plotting.EField(geometry,light_direction, light_polarization, E_total, pixel_size, iteration=i, position=newpath+"\\E-Field_Vectors\\")
-
-sym_axis = [10.5, 10.5]
-geometry_shape = [22, 22, 10]
-pixel_size = 15.0
-light_direction = [0, 0, 1]
-light_polarization = [1, 0, 0]
-wavelength = 542
-initialization = np.loadtxt("initializations/hourglass.txt")
+sym_axis = parsed_json["sym_axis"]
+geometry_shape = parsed_json["geometry_shape"]
+pixel_size = parsed_json["pixel_size"]
+light_direction = parsed_json["light_direction"]
+light_polarization = parsed_json["light_polarization"]
+wavelength = parsed_json["wavelength"]
+initialization = np.loadtxt("initializations/halfcylinder.txt")
 #initialization += np.random.uniform(0, 10e-3, size=initialization.shape)
 dielectric_constants = [1.01 + 0j, 5.96282 + 3.80423e-7j]
 
 # flags for saving different values from calculation
-saveObjective = True
-saveStructures = True
-saveEFields = True
+saveObjective = parsed_json["saveObjective"]
+saveStructures = parsed_json["saveStructures"]
+saveEFields = parsed_json["saveEFields"]
+base_path = parsed_json["base_path"]
 
-plotFlag = True                # umbrella flag for no plots except objfunc
-# flags for plotting generated structures 
-plotObjective = True
-plotStructures = True
-plotSolidStructures = True
-plotEFields = True             # umbrella flag for no E-Field plots at all
+#stepArray = np.logspace(-2, 0, 20)
+#stepArray = np.round(stepArray, 3)
+#print(stepArray)
 
-# Specific E-field plot flags
-plotZField = True
-plotYField = True
-plotXField = True
-plotEVectors = True
+#penaltyList = ['parabolic', 'gaussian', 'triangular']
+penaltyList = parsed_json["penaltyList"]
+#coeffList = ['linear', 'exp', 'piecewise']
+coeffList = parsed_json["coeffList"]
 
-for i in range(1):
-    model = construct_model()
-    evo_max_iter = 400
-    # epsilon = 0.01 # This works better
-    epsilon = 0.01
-    all_objective_values = [0] * evo_max_iter
+epsilon = parsed_json["epsilon"]
+evo_max_iter = parsed_json["evo_max_iteration"]
+coeff_min = parsed_json["coeff_min"]
+coeff_max = parsed_json["coeff_max"]
 
-    newpath = 'E:\\Calculations\\2024April30\\HourglassWithPlottingDictionary2'
-    if not os.path.exists(newpath):
-        os.makedirs(newpath)
-    plotDict = {
-        '\\Structure_Values': saveStructures,
-        '\\Structures': plotStructures,
-        '\\SolidStructures': plotSolidStructures,
-        '\\E-Field_Values': saveEFields,
-        '\\E-Field_ZSlice': plotZField,
-        '\\E-Field_YSlice': plotYField,
-        '\\E-Field_XSlice': plotXField,
-        '\\E-Field_Vectors': plotEVectors
-         
-    }
+for penaltyType in penaltyList:
+    for coeffType in coeffList:
 
-    for directory, flag in plotDict.items():
-        if flag and not os.path.exists(newpath + directory):
-            os.makedirs(newpath + directory)
+        model = construct_model()
+        optimizer = optimizers.AdamOptimizer()
+        # epsilon = 0.01 # This works better
+        all_objective_values = [0] * evo_max_iter
 
-    optimizer = optimizers.AdamOptimizer()
-    # main iteration loop for gradient descent optimization
-    for iteration in range(evo_max_iter):
-        print("---------------------------------------STARTING ITERATION " + str(iteration) + "------------------------------------------")
-
-        objective_value = model.objective()
-        print("Objective Value is: " + str(objective_value))
-        all_objective_values[iteration] = objective_value  
-
-        gradients = model.gradients(objective_value)
+        newpath = base_path + '_it' + str(evo_max_iter) + '_eps' + str(epsilon) + '_penalty_' + penaltyType + '_coeff' + str(coeff_min) + 'to' + str(coeff_max) + '_' + coeffType
+        print("Saving value to path: " + newpath)
+        createDirectories(newpath, saveStructures, saveEFields)
         
-        if saveStructures:
-            all_parameters = model.allParameters()
-            saveCurrentStructure(all_parameters, newpath, iteration)
-        if saveEFields:
-            electricField = model.getElectricField()
-            saveCurrentEField(electricField, newpath, iteration)
+        # main iteration loop for gradient descent optimization
+        for iteration in range(evo_max_iter):
+            print("---------------------------------------STARTING ITERATION " + str(iteration) + "------------------------------------------")
 
-        gradients_final = optimizer(gradients)
+            objective_value = model.objective()
+            print("Objective Value is: " + str(objective_value))
+            all_objective_values[iteration] = objective_value  
 
-        step = epsilon * gradients_final
-        model.parameters = step
-    
-    # plotting. may need to be moved in a function, or into plotting.py 
-    if saveObjective:
-        saveObjectiveFunction(all_objective_values, newpath)
-    if plotObjective:
-        plotting.plotObjectiveFunction(all_objective_values, newpath)
-    
-    if plotFlag:
-        geometry = _generate_geometry(geometry_shape[0], geometry_shape[1], geometry_shape[2])
-        itStart = 0
-        itEnd = 400
-        numskip = 5
+            objgradients = model.gradients(objective_value)
+            
+            if saveStructures:
+                all_parameters = model.allParameters()
+                saveCurrentStructure(all_parameters, newpath, iteration)
+            if saveEFields:
+                electricField = model.getElectricField()
+                saveCurrentEField(electricField, newpath, iteration)
 
-        if saveStructures and plotStructures:
-            plotStructuresFunction(geometry, itStart, itEnd, numskip)
-        if saveStructures and plotSolidStructures:
-            plotStructuresFunction(geometry, itStart, itEnd, numskip, solid=True)
-        if saveEFields and plotEFields:
-            plotFieldsFunction(geometry, itStart, itEnd, numskip)
+            params = model.parameters
+            penaltygradients = np.array(objgradients)
+            penaltygradients = calculatePenalty(params, penaltyType)
+            coeff = calculatePenaltyCoefficient(iteration, evo_max_iter, coeff_min, coeff_max, coeffType)
+            #coeff = 0.1
+
+            gradients = objgradients - coeff*penaltygradients
+            gradients_final = optimizer(gradients)
+
+            step = epsilon * gradients_final
+            model.parameters = step
         
-    '''
-    if saveStructures and plotStructures:
-
-        geometry = _generate_geometry(geometry_shape[0], geometry_shape[1], geometry_shape[2])
-        itStart = 0
-        itEnd = 400
-        numskip = 5
-        for i in range(itStart, itEnd):
-            if i % numskip == 0:
-                print('Plotting the ' + str(i) + 'th structure')
-                CoreStructure=np.genfromtxt(os.path.join(newpath+"\\Structure_Values\\Structure"+str(i)+".txt"),dtype=complex)
-                diel=np.real(CoreStructure)
-
-                plotting.Shape(geometry, diel, pixel_size, iteration=i, position=newpath+"\\Structures\\", FullLattice=False)
-
-    if saveEFields and plotEFields:
-        geometry = _generate_geometry(geometry_shape[0], geometry_shape[1], geometry_shape[2])
-        itStart = 0
-        itEnd = 400
-        numskip = 5
-        ELimit = True
-        ELimitLow = 0
-        ELimitHigh = 16
-        xslice = 11
-        yslice = 11
-        zslice = 9
-        for i in range(itStart, itEnd):
-            if i % numskip == 0:
-                print('Plotting the ' + str(i) + 'th E-Field')
-                E_total=np.genfromtxt(os.path.join(newpath+"\\E-Field_Values\\E-Field"+str(i)+".txt"),dtype=complex)
-
-                if plotXField:
-                    plotting.EField_slice(geometry, E_total, pixel_size, Elimit=ELimit, Elimitlow=ELimitLow, Elimithigh=ELimitHigh, iteration=i, Xslice=xslice,position=newpath+"\\E-Field_Slices\\")
-
-                if plotYField:
-                    plotting.EField_slice(geometry, E_total, pixel_size, Elimit=ELimit, Elimitlow=ELimitLow, Elimithigh=ELimitHigh, iteration=i, Yslice=yslice, position=newpath+"\\E-Field_Slices\\")
-
-                if plotZField:
-                    plotting.EField_slice(geometry, E_total, pixel_size, Elimit=ELimit, Elimitlow=ELimitLow, Elimithigh=ELimitHigh, iteration=i, Zslice=zslice, position=newpath+"\\E-Field_Slices\\")
-
-    if saveEFields and plotEVectors:
-        geometry = _generate_geometry(geometry_shape[0], geometry_shape[1], geometry_shape[2])
-        itStart = 0
-        itEnd = 400
-        numskip = 5
-        for i in range(itStart, itEnd):
-            if i % numskip == 0:
-                print('Plotting the ' + str(i) + 'th E-Field Vectors')
-                E_total=np.genfromtxt(os.path.join(newpath+"\\E-Field_Values\\E-Field"+str(i)+".txt"),dtype=complex)
-
-                plotting.EField(geometry,light_direction, light_polarization, E_total, pixel_size, iteration=i, position=newpath+"\\E-Field_Vectors\\")
-    '''
+        if saveObjective:
+            saveObjectiveFunction(all_objective_values, newpath)
+    
 
 
 

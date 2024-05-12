@@ -4,9 +4,11 @@ import numpy as np
 from matplotlib import cm
 from scipy import ndimage
 
-def plotObjectiveFunction(objective_values, path):
+def plotObjectiveFunction(max_iterations, path):
     #plt.figure(1)
-    plt.plot(objective_values)
+    obj=np.loadtxt(path+"\\obj_values.txt")
+    iterations = np.arange(max_iterations)
+    plt.plot(iterations, obj)
     #plt.legend(loc='lower right')
     plt.title('Objective Function Plot')
     plt.ylabel('Objective Function')
@@ -14,6 +16,7 @@ def plotObjectiveFunction(objective_values, path):
     plt.rc('axes', titlesize=14)     # fontsize of the axes title
     plt.rc('axes', labelsize=12)    # fontsize of the x and y labels
     plt.savefig(path + '\\obj.png', bbox_inches='tight')
+    plt.close()
 
 
 def Shape(geometry,diel,d,angle1=225,angle2=45,colormax=1,shapebarrier=0.5,plotDpi=100,iteration=-1,position="./",FullLattice=False):
@@ -85,7 +88,7 @@ def Shape(geometry,diel,d,angle1=225,angle2=45,colormax=1,shapebarrier=0.5,plotD
         plt.savefig("Space.png")
     else:
         fig.suptitle("iteration{}".format(iteration))
-        plt.savefig(position+"{}Space.png".format(str(iteration).zfill(5)),dpi=plotDpi)
+        plt.savefig(position+"Structure{}.png".format(str(iteration)),dpi=plotDpi)
     #plt.show()
     plt.close()
 

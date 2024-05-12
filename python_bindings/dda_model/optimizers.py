@@ -21,3 +21,15 @@ class AdamOptimizer:
         self.timestep += 1
 
         return result
+    
+class AdaGradOptimizer:
+    def __init__(self):
+        self.squaredGradient = 0
+
+    def __call__(self, gradients):
+
+        result = np.array(gradients)
+        print("Using Adagrad Optimizer.")
+        self.squaredGradient += np.power(gradients, 2) / 100000
+        result = gradients / (self.squaredGradient + 1)
+        return result
