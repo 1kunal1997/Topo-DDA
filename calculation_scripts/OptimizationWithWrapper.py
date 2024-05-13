@@ -4,8 +4,9 @@ from dda_model import binarizers
 import numpy as np
 import json
 from pathlib import Path
+import os
 
-def construct_model():
+def _constructModel():
 
     model = dda_model.DDAModelWrapper(
         geometry_shape,
@@ -20,43 +21,42 @@ def construct_model():
     )
     return model
 
-def saveCurrentStructure(all_parameters, path, iteration):
-    with open(path + '\\Structure_Values\\Structure' + str(iteration) + '.txt', 'w') as f:
-        for para in all_parameters:
-            f.write(f"{para}\n")
+def _saveCurrentStructure(all_parameters, path, iteration):
+    curr_path = os.path.join(path, f"Structure_Values/Structure{iteration}.txt")
+    np.savetxt(curr_path, all_parameters, delimiter='\n')
 
-def saveObjectiveFunction(all_obj, path):
-    with open(path + '\\Obj_Values.txt', 'w') as f:
-        for obj in all_obj:
-            f.write(f"{obj}\n")
+def _saveObjectiveFunction(all_obj, path):
+    curr_path = os.path.join(path, "Obj_Values.txt")
+    np.savetxt(curr_path, all_obj, delimiter='\n')
 
-def saveCurrentEField(electric_field, path, iteration):
-    with open(path + '\\E-Field_Values\\E-Field' + str(iteration) + '.txt', 'w') as f:
-        for field in electric_field:
-            f.write(f"{field}\n")
+def _saveCurrentEField(electric_field, path, iteration):
+    curr_path = os.path.join(path, f"E-Field_Values/E-Field{iteration}.txt")
+    np.savetxt(curr_path, electric_field, delimiter='\n')
 
-def createDirectories(path, saveStructuresFlag, saveEFieldsFlag):
+def _createDirectories(path, save_structures, save_fields):
+
     Path(path).mkdir(parents=True, exist_ok=True)
+    if save_structures:
+        Path(os.path.join(path, "Structure_Values")).mkdir(parents=True, exist_ok=True)
+    if save_fields:
+        Path(os.path.join(path, "E-Field_Values")).mkdir(parents=True, exist_ok=True)
 
-    if saveStructuresFlag:
-        Path(path + '\\Structure_Values').mkdir(parents=True, exist_ok=True)
-    if saveEFieldsFlag:
-        Path(path + '\\E-Field_Values').mkdir(parents=True, exist_ok=True)
+def _calculatePenalty(parameters, penalty_type):
 
-def calculatePenalty(parameters, penaltyType):
-    if penaltyType == 'parabolic':
+    if penalty_type == 'parabolic':
         return binarizers.gradParabolic(parameters)
-    elif penaltyType == 'gaussian':
+    elif penalty_type == 'gaussian':
         return binarizers.gradGaussian(parameters, 0.1, 0.5)
-    elif penaltyType == 'triangular':
+    elif penalty_type == 'triangular':
         return binarizers.gradTriangular(parameters, 1)
 
-def calculatePenaltyCoefficient(iteration, evo_max_iter, coeff_min, coeff_max, coeffType):
-    if coeffType == 'piecewise':
+def _calculatePenaltyCoefficient(iteration, evo_max_iter, coeff_min, coeff_max, coeff_type):
+
+    if coeff_type == 'piecewise':
         return binarizers.piecewise_update(iteration, evo_max_iter, coeff_min, coeff_max)
-    elif coeffType == 'linear':
+    elif coeff_type == 'linear':
         return binarizers.linear_update(iteration, evo_max_iter, coeff_min, coeff_max)
-    elif coeffType == 'exp':
+    elif coeff_type == 'exp':
         return binarizers.exp_update(iteration, 299, coeff_min, coeff_max)
 
 with open('config.json') as user_file:
@@ -73,9 +73,9 @@ initialization = np.loadtxt("initializations/halfcylinder.txt")
 dielectric_constants = [1.01 + 0j, 5.96282 + 3.80423e-7j]
 
 # flags for saving different values from calculation
-saveObjective = parsed_json["saveObjective"]
-saveStructures = parsed_json["saveStructures"]
-saveEFields = parsed_json["saveEFields"]
+save_objective = parsed_json["save_objective"]
+save_structures = parsed_json["save_structures"]
+save_fields = parsed_json["save_fields"]
 base_path = parsed_json["base_path"]
 
 #stepArray = np.logspace(-2, 0, 20)
@@ -83,58 +83,57 @@ base_path = parsed_json["base_path"]
 #print(stepArray)
 
 #penaltyList = ['parabolic', 'gaussian', 'triangular']
-penaltyList = parsed_json["penaltyList"]
+penalty_list = parsed_json["penalty_list"]
 #coeffList = ['linear', 'exp', 'piecewise']
-coeffList = parsed_json["coeffList"]
+coeff_list = parsed_json["coeff_list"]
 
-epsilon = parsed_json["epsilon"]
+step_size = parsed_json["step_size"]
 evo_max_iter = parsed_json["evo_max_iteration"]
 coeff_min = parsed_json["coeff_min"]
 coeff_max = parsed_json["coeff_max"]
 
-for penaltyType in penaltyList:
-    for coeffType in coeffList:
+for penalty_type in penalty_list:
+    for coeff_type in coeff_list:
+        
+        new_path = base_path + '_it' + str(evo_max_iter) + '_eps' + str(step_size) + '_penalty_' + penalty_type + '_coeff' + str(coeff_min) + 'to' + str(coeff_max) + '_' + coeff_type
+        print("Saving value to path: " + new_path)
+        _createDirectories(new_path, save_structures, save_fields)
 
-        model = construct_model()
+        model = _constructModel()
         optimizer = optimizers.AdamOptimizer()
-        # epsilon = 0.01 # This works better
-        all_objective_values = [0] * evo_max_iter
-
-        newpath = base_path + '_it' + str(evo_max_iter) + '_eps' + str(epsilon) + '_penalty_' + penaltyType + '_coeff' + str(coeff_min) + 'to' + str(coeff_max) + '_' + coeffType
-        print("Saving value to path: " + newpath)
-        createDirectories(newpath, saveStructures, saveEFields)
+        # step_size = 0.01 # This works better
+        all_objective_values = []
         
         # main iteration loop for gradient descent optimization
         for iteration in range(evo_max_iter):
-            print("---------------------------------------STARTING ITERATION " + str(iteration) + "------------------------------------------")
+            print(f"---------------------------------------STARTING ITERATION {iteration} ------------------------------------------")
 
             objective_value = model.objective()
             print("Objective Value is: " + str(objective_value))
-            all_objective_values[iteration] = objective_value  
+            all_objective_values.append(objective_value) 
 
-            objgradients = model.gradients(objective_value)
+            obj_gradients = model.gradients(objective_value)
             
-            if saveStructures:
+            if save_structures:
                 all_parameters = model.allParameters()
-                saveCurrentStructure(all_parameters, newpath, iteration)
-            if saveEFields:
-                electricField = model.getElectricField()
-                saveCurrentEField(electricField, newpath, iteration)
+                _saveCurrentStructure(all_parameters, new_path, iteration)
+            if save_fields:
+                electric_field = model.getElectricField()
+                _saveCurrentEField(electric_field, new_path, iteration)
 
             params = model.parameters
-            penaltygradients = np.array(objgradients)
-            penaltygradients = calculatePenalty(params, penaltyType)
-            coeff = calculatePenaltyCoefficient(iteration, evo_max_iter, coeff_min, coeff_max, coeffType)
+            penalty_gradients = _calculatePenalty(params, penalty_type)
+            coeff = _calculatePenaltyCoefficient(iteration, evo_max_iter, coeff_min, coeff_max, coeff_type)
             #coeff = 0.1
 
-            gradients = objgradients - coeff*penaltygradients
+            gradients = obj_gradients - coeff*penalty_gradients
             gradients_final = optimizer(gradients)
 
-            step = epsilon * gradients_final
+            step = step_size * gradients_final
             model.parameters = step
         
-        if saveObjective:
-            saveObjectiveFunction(all_objective_values, newpath)
+        if save_objective:
+            _saveObjectiveFunction(all_objective_values, new_path)
     
 
 

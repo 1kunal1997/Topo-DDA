@@ -3,10 +3,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
 from scipy import ndimage
+import os
 
 def plotObjectiveFunction(max_iterations, path):
     #plt.figure(1)
-    obj=np.loadtxt(path+"\\obj_values.txt")
+    obj=np.loadtxt(os.path.join(path, "obj_values.txt"))
     iterations = np.arange(max_iterations)
     plt.plot(iterations, obj)
     #plt.legend(loc='lower right')
@@ -15,7 +16,7 @@ def plotObjectiveFunction(max_iterations, path):
     plt.xlabel('Iteration #')
     plt.rc('axes', titlesize=14)     # fontsize of the axes title
     plt.rc('axes', labelsize=12)    # fontsize of the x and y labels
-    plt.savefig(path + '\\obj.png', bbox_inches='tight')
+    plt.savefig(os.path.join(path, "obj.png"), bbox_inches='tight')
     plt.close()
 
 
@@ -84,11 +85,12 @@ def Shape(geometry,diel,d,angle1=225,angle2=45,colormax=1,shapebarrier=0.5,plotD
      
     #plt.show()
     #plt.savefig("./optimization_geometries/Iteration{}.png".format(it))
-    if iteration==-1:
-        plt.savefig("Space.png")
+
+    fig.suptitle(f"iteration{iteration}")
+    if FullLattice:
+        plt.savefig(os.path.join(position, f"SolidStructures/Structure{iteration}.png"),dpi=plotDpi)
     else:
-        fig.suptitle("iteration{}".format(iteration))
-        plt.savefig(position+"Structure{}.png".format(str(iteration)),dpi=plotDpi)
+        plt.savefig(os.path.join(position, f"Structures/Structure{iteration}.png"),dpi=plotDpi)
     #plt.show()
     plt.close()
 
@@ -129,12 +131,15 @@ def EField_slice(geometry, E_tot, d, plotDpi=100, Elimit=False, Elimitlow=-1,Eli
     slicedim=-1
     
     if Xslice!=-1:
+        position = os.path.join(position, "E-Field_XSlice")
         slicedim=0
         Eslice=np.zeros((Y, Z))
     if Yslice!=-1:
+        position = os.path.join(position, "E-Field_YSlice")
         slicedim=1
         Eslice=np.zeros((Z, X))
     if Zslice!=-1:
+        position = os.path.join(position, "E-Field_ZSlice")
         slicedim=2
         Eslice=np.zeros((X, Y))
     
@@ -166,7 +171,7 @@ def EField_slice(geometry, E_tot, d, plotDpi=100, Elimit=False, Elimitlow=-1,Eli
     if Elimit:
         plt.clim(Elimitlow, Elimithigh)
     plt.colorbar()
-    plt.savefig(position+"EField{} E_slice_{}at{}.png".format(iteration, (["X", "Y", "Z"])[slicedim], slicepos), dpi=plotDpi) 
+    plt.savefig(os.path.join(position, f"EField{iteration} E_slice_{(["X", "Y", "Z"])[slicedim]}at{slicepos}.png"), dpi=plotDpi) 
     plt.close()
 
 def EField(geometry, k_dir, E_dir, E_tot, d, iteration=-1, position="./"):
@@ -225,8 +230,8 @@ def EField(geometry, k_dir, E_dir, E_tot, d, iteration=-1, position="./"):
     ax1.set_ylabel("y[nm]")
     ax1.set_zlabel("z[nm]")
     ax1.grid(False)
-    fig1.suptitle("E field - Arrow plot\n {}".format(E_dir))
-    plt.savefig(position+"E_field_arrow{}.png".format(str(iteration)))
+    fig1.suptitle(f"E field - Arrow plot\n {E_dir}")
+    plt.savefig(os.path.join(position, f"E-Field_Vectors/E_field_arrow{iteration}.png"))
 
     fig2 = plt.figure()
     ax2 = fig2.add_subplot(111, projection='3d')
@@ -257,9 +262,6 @@ def EField(geometry, k_dir, E_dir, E_tot, d, iteration=-1, position="./"):
     ax2.set_zlabel("z[nm]")
     ax2.grid(False)
     fig2.colorbar(colorset, shrink=0.9, aspect=10, cax=ax2.inset_axes([-0.1, 0.1, 0.05, 0.8]))
-    if iteration==-1:
-        fig2.suptitle("E field - Scatter plot\n, {}".format(k_dir)) 
-        plt.savefig("E_field.png")
-    else:
-        fig2.suptitle("E field - Scatter plot\n, {} - iteration{}".format(k_dir,iteration)) 
-        plt.savefig(position+"E_field{}.png".format(str(iteration)))
+
+    fig2.suptitle(f"E field - Scatter plot\n, {k_dir} - iteration{iteration}") 
+    plt.savefig(os.path.join(position, f"E-Field_Vectors/E_field{iteration}.png"))

@@ -6,25 +6,25 @@
     "light_polarization" : [1, 0, 0] ,
     "wavelength" : 542.0 ,
     "evo_max_iteration" : 400 ,
-    "epsilon" : 0.01 ,
+    "step_size" : 0.01 ,
 
-    "saveObjective" : true ,
-    "saveStructures" : true ,
-    "saveEFields" : false ,
-    "base_path" : "E:\\Calculations\\2024May10\\HalfCylinder8" ,
+    "save_objective" : true ,
+    "save_structures" : true ,
+    "save_fields" : true ,
+    "base_path" : "E:\\Calculations\\2024May10\\HalfCylinder11" ,
 
-    "penaltyList" : ["parabolic"] ,
-    "coeffList" : ["linear"] ,
+    "penalty_list" : ["parabolic"] ,
+    "coeff_list" : ["linear"] ,
     "coeff_min" : 0.0 ,
     "coeff_max" : 0.5 ,
 
-    "plotObjective" : true ,
-    "plotStructures" : true ,
-    "plotSolidStructures" : false ,
-    "plotEFields" : false ,             
+    "plot_objective" : true ,
+    "plot_structures" : true ,
+    "plot_solid_structures" : false ,
+    "plot_fields" : true ,             
 
-    "plotZField" : true ,
-    "plotYField" : false ,
-    "plotXField" : false ,
-    "plotEVectors" : false
+    "plot_z_field" : true ,
+    "plot_y_field" : false ,
+    "plot_x_field" : false ,
+    "plot_vectors" : false
 }

@@ -105,20 +105,15 @@ def _construct_test_model():
     model = dda_model.DDAModel(*list(ordered_parameters.values()))
     return model, ordered_parameters
 
-
-
-GLOBAL_MODEL = _construct_test_model()
-
-# model, parameters = _construct_test_model()
-model, parameters = GLOBAL_MODEL
+model, parameters = _construct_test_model()
 origin_polarization = [0 + 0j] * 3 * parameters["geo_ntotal"]
 # Numerical parameters for the bicongugate gradient stabilized method. 
 bgs_max_iter = 100_000
 evo_max_iter = 400
 bgs_max_error = 1e-5
-# epsilon = 0.1
-# epsilon = 0.01 # This works better
-epsilon = 0.01
+# step_size = 0.1
+# step_size = 0.01 # This works better
+step_size = 0.01
 beta1 = 0.9
 beta2 = 1 - (1 - beta1) * (1 - beta1)
 num_free_parameters = len(model.getParameters())
@@ -131,7 +126,7 @@ if not os.path.exists(newpath):
 optimizer = optimizers.AdamOptimizer(beta1, beta2)
 
 for iteration in range(evo_max_iter):
-    print("---------------------------------------STARTING ITERATION " + str(iteration) + "------------------------------------------")
+    print(f"---------------------------------------STARTING ITERATION {iteration} ------------------------------------------")
 
     # Must call .solveElectricField before calculating the objective.
     model.solveElectricField(origin_polarization, bgs_max_iter, bgs_max_error)
@@ -141,19 +136,16 @@ for iteration in range(evo_max_iter):
     all_objective_values[iteration] = objective_value    
     epsilon_partial = 0.001
     gradients = model.calculateGradients(epsilon_partial, objective_value, bgs_max_iter, bgs_max_error)
-    #epsilon_final, gradients_final = AdamImplementation(epsilon, beta1, beta2, gradients, iteration)
+    #epsilon_final, gradients_final = AdamImplementation(step_size, beta1, beta2, gradients, iteration)
 
     all_parameters = model.getDielectrics()
     
-    with open(newpath + '\\CoreStructure' + str(iteration) + '.txt', 'w') as f:
-        for para in all_parameters:
-            f.write(f"{para}\n")
-
-    epsilon_final = epsilon
+    path = os.path.join(newpath, f"CoreStructure{iteration}.txt")
+    np.savetxt(path, all_parameters, delimiter='\n')
 
     gradients_final = optimizer(gradients)
 
-    step = epsilon_final * gradients_final
+    step = step_size * gradients_final
     model.setParameters(step)
 
 plt.figure(1)

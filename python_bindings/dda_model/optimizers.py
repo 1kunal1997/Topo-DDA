@@ -16,7 +16,7 @@ class AdamOptimizer:
         self.S = self.beta2 * self.S + (1 - self.beta2) * (np.power(gradients, 2)) / (1 - self.beta2**(self.timestep + 1))
 
         for i in range(len(gradients)):
-            result[i] = self.V[i] / (np.sqrt(self.S[i]) + 0.00000001)
+            result[i] = self.V[i] / (np.sqrt(self.S[i]) + 1e-8)
         
         self.timestep += 1
 
