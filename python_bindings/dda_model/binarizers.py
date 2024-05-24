@@ -9,7 +9,7 @@ def gradParabolic(parameters):
     return 1 - 2 * parameters
 
 def gaussian(parameters, sig, mu):
-    return 1/(np.sqrt(2*np.pi)*sig)*np.exp(-np.power((parameters - mu)/sig, 2)/2)/24
+    return sig*np.exp(-np.power((parameters - mu)/sig, 2)/2 + 0.5)
 
 def gradGaussian(parameters, sig, mu):
     return -(parameters - mu) * gaussian(parameters, sig, mu) / np.square(sig)
@@ -37,11 +37,11 @@ def gradTriangular(parameters, slope):
     return result
 
 def piecewise_update(x, x_max, y_min, y_max):
-    if x <= 0.5 * x_max:
+    if x <= 200:
         return y_min
-    elif 0.5 * x_max < x <= 0.7 * x_max:
+    elif 200 < x <= 280:
         return y_min + (y_max - y_min) / 5
-    elif 0.7 * x_max < x <= 0.8 * x_max:
+    elif 280 < x <= 320:
         return y_min + (y_max - y_min) / 2.5
     else:
         return y_max
@@ -56,11 +56,24 @@ def exp_update(x, x_max, y_min, y_max):
 def linear_update(x, x_max, y_min, y_max):
     return y_min + (y_max - y_min) * x / x_max
 
-'''
+
 x_values = np.linspace(0, 1, 200)
-plt.figure(2)
-plt.plot(x_values, gradGaussian(x_values, 0.1, 0.5))
-plt.figure(3)
-plt.plot(x_values, gaussian(x_values, 0.1, 0.5))
+path = 'E:\\Calculations\\2024May19\\Testing_HalfCylinder_it400_eps0.01_gaussianPenalty_sig0.1_constantCoeff50'
+#for i in range(400):
+
+#penalties = np.loadtxt(path + f'\\Penalties\\Penalty{i}.txt')
+#parameters = np.loadtxt(path + f'\\Params\\Param{i}.txt')
+#penalty_gradients = np.loadtxt(path + f'\\Gradients_Penalty\\Gradient{i}.txt')
+
+plt.figure()
+plt.plot(x_values, gradGaussian(x_values, 0.15, 0.5))
+#plt.plot(parameters, penalty_gradients, 'o')
+#plt.savefig(path + f"\\Debugging\\debugginggradient{i}.png")
+
+plt.figure()
+plt.plot(x_values, gaussian(x_values, 0.15, 0.5))
+#plt.plot(parameters, penalties, 'o')
+#plt.savefig(path + f"\\Debugging\\debugging{i}.png")
 plt.show()
-'''
+
+#plt.show()

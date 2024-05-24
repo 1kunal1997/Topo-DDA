@@ -1,30 +1,53 @@
 {
-    "sym_axis" : [10.5, 10.5] ,
-    "geometry_shape" : [22, 22, 10] ,
-    "pixel_size" : 15.0 ,
-    "light_direction" : [0, 0, 1] ,
-    "light_polarization" : [1, 0, 0] ,
-    "wavelength" : 542.0 ,
-    "evo_max_iteration" : 400 ,
-    "step_size" : 0.01 ,
-
-    "save_objective" : true ,
-    "save_structures" : true ,
-    "save_fields" : true ,
-    "base_path" : "E:\\Calculations\\2024May10\\HalfCylinder11" ,
-
-    "penalty_list" : ["parabolic"] ,
-    "coeff_list" : ["linear"] ,
-    "coeff_min" : 0.0 ,
-    "coeff_max" : 0.5 ,
-
-    "plot_objective" : true ,
-    "plot_structures" : true ,
-    "plot_solid_structures" : false ,
-    "plot_fields" : true ,             
-
-    "plot_z_field" : true ,
-    "plot_y_field" : false ,
-    "plot_x_field" : false ,
-    "plot_vectors" : false
+    "sym_axis": [
+        10.5,
+        10.5
+    ],
+    "geometry_shape": [
+        22,
+        22,
+        10
+    ],
+    "pixel_size": 15.0,
+    "light_direction": [
+        0,
+        0,
+        1
+    ],
+    "light_polarization": [
+        1,
+        0,
+        0
+    ],
+    "wavelength": 542.0,
+    "evo_max_iteration": 400,
+    "step_size": 0.01,
+    "save_objective": true,
+    "save_structures": true,
+    "save_fields": false,
+    "save_penalty_coefficients": true,
+    "save_penalty_shape": true,
+    "save_average_penalty": true,
+    "save_gradients_penalty": true,
+    "save_params": true,
+    "save_penalties": true,
+    "base_path": "E:\\Calculations\\2024May23\\",
+    "penalty_type": "parabolic",
+    "coeff_type": "constant",
+    "coeff_min": 0.0,
+    "coeff_max": 0.5,
+    "sigma": 0.2,
+    "mu": 0.5,
+    "slope": 1.5,
+    "coeff_const": 0.1,
+    "plot_structures": true,
+    "plot_solid_structures": false,
+    "plot_fields": false,
+    "plot_z_field": false,
+    "plot_y_field": false,
+    "plot_x_field": false,
+    "plot_vectors": false,
+    "plot_penalties": true,
+    "plot_gradients_penalty": true,
+    "full_path": "E:\\Calculations\\2024May19\\Testing_HalfCylinder_it400_eps0.01_gaussianPenalty_sig0.1_constantCoeff5.0"
 }
