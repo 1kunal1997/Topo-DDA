@@ -75,7 +75,7 @@ def plotPenaltyGradients(path, iteration):
     plt.savefig(os.path.join(path, "Gradient_Penalty_Plots", f"penaltyGradient_{iteration}.png"), bbox_inches='tight')
     plt.close()
 
-def plotParabolic(path):
+def plotParabolic(path, info_dict):
     x, penalty_shape=np.loadtxt(os.path.join(path, "Penalty_Shape.txt"), delimiter=',', unpack=True)
     plt.plot(x, penalty_shape)
     #plt.legend(loc='lower right')
@@ -98,7 +98,9 @@ def plotParabolic(path):
     plt.savefig(os.path.join(path, "penaltyGradient_shape.png"), bbox_inches='tight')
     plt.close()
 
-def plotGaussian(path, sigma, mu):
+def plotGaussian(path, info_dict):
+    sigma = info_dict["sigma"]
+    mu = info_dict["mu"]
     x, penalty_shape=np.loadtxt(os.path.join(path, "Penalty_Shape.txt"), delimiter=',', unpack=True)
     plt.plot(x, penalty_shape)
     #plt.legend(loc='lower right')
@@ -121,7 +123,8 @@ def plotGaussian(path, sigma, mu):
     plt.savefig(os.path.join(path, "penaltyGradient_shape.png"), bbox_inches='tight')
     plt.close()
 
-def plotTriangular(path, slope):
+def plotTriangular(path, info_dict):
+    slope = info_dict["slope"]
     x, penalty_shape=np.loadtxt(os.path.join(path, "Penalty_Shape.txt"), delimiter=',', unpack=True)
     plt.plot(x, penalty_shape)
     #plt.legend(loc='lower right')

@@ -2,19 +2,24 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 
-def parabolic(parameters):
+def parabolic(parameters, info_dict):
     return parameters - np.square(parameters)
 
-def gradParabolic(parameters):
+def gradParabolic(parameters, info_dict):
     return 1 - 2 * parameters
 
-def gaussian(parameters, sig, mu):
+def gaussian(parameters, info_dict):
+    sig = info_dict["sigma"]
+    mu = info_dict["mu"]
     return sig*np.exp(-np.power((parameters - mu)/sig, 2)/2 + 0.5)
 
-def gradGaussian(parameters, sig, mu):
+def gradGaussian(parameters, info_dict):
+    sig = info_dict["sigma"]
+    mu = info_dict["mu"]
     return -(parameters - mu) * gaussian(parameters, sig, mu) / np.square(sig)
 
-def triangular(parameters, slope):
+def triangular(parameters, info_dict):
+    slope = info_dict["slope"]
     result = np.array(parameters)
 
     for i, para in enumerate(parameters):
@@ -25,7 +30,8 @@ def triangular(parameters, slope):
 
     return result
 
-def gradTriangular(parameters, slope):
+def gradTriangular(parameters, info_dict):
+    slope = info_dict["slope"]
     result = np.array(parameters)
 
     for i, para in enumerate(parameters):
@@ -36,44 +42,71 @@ def gradTriangular(parameters, slope):
 
     return result
 
-def piecewise_update(x, x_max, y_min, y_max):
-    if x <= 200:
-        return y_min
-    elif 200 < x <= 280:
-        return y_min + (y_max - y_min) / 5
-    elif 280 < x <= 320:
-        return y_min + (y_max - y_min) / 2.5
+def piecewise_update_absolute(iter, info_dict):
+    iter1 = info_dict["iter1"] 
+    iter2 = info_dict["iter2"] 
+    iter3 = info_dict["iter3"]
+    coeff_min = info_dict["coeff_min"]
+    coeff_max = info_dict["coeff_max"] 
+    denom1 = info_dict["denom1"]
+    denom2 = info_dict["denom2"]
+    if iter <= iter1:
+        return coeff_min
+    elif iter1 < iter <= iter2:
+        return coeff_min + (coeff_max - coeff_min) / denom1
+    elif iter2 < iter <= iter3:
+        return coeff_min + (coeff_max - coeff_min) / denom2
     else:
-        return y_max
-    
-def exp_update(x, x_max, y_min, y_max):
-    base = 100
-    if x <= 300:
-        return y_min + (y_max - y_min) * (math.pow(base, (x / x_max)) - 1) / (base - 1)
+        return coeff_max
+
+def piecewise_update(iter, info_dict):
+    frac1 = info_dict["frac1"] 
+    frac2 = info_dict["frac2"] 
+    frac3 = info_dict["frac3"]
+    iter_end = info_dict["iter_end"]
+    coeff_min = info_dict["coeff_min"]
+    coeff_max = info_dict["coeff_max"] 
+    denom1 = info_dict["denom1"]
+    denom2 = info_dict["denom2"]
+    if iter <= frac1*iter_end:
+        return coeff_min
+    elif frac1*iter_end < iter <= frac2*iter_end:
+        return coeff_min + (coeff_max - coeff_min) / denom1
+    elif frac2*iter_end < iter <= frac3*iter_end:
+        return coeff_min + (coeff_max - coeff_min) / denom2
     else:
-        return 0.5
+        return coeff_max
     
-def linear_update(x, x_max, y_min, y_max):
-    return y_min + (y_max - y_min) * x / x_max
+def exp_update(iter, info_dict):
+    base = info_dict["base"]
+    iter_start = info_dict["iter_start"] 
+    iter_end = info_dict["iter_end"]
+    coeff_min = info_dict["coeff_min"]
+    coeff_max = info_dict["coeff_max"] 
+    if iter < iter_start:
+        return coeff_min
+    elif iter > iter_end:
+        return coeff_max
+    else:
+        return coeff_min + (coeff_max - coeff_min) * (math.pow(base, ((iter-iter_start) / (iter_end-iter_start))) - 1) / (base - 1)
+    
+def linear_update(iter, info_dict):
+    iter_start = info_dict["iter_start"] 
+    iter_end = info_dict["iter_end"]
+    coeff_min = info_dict["coeff_min"]
+    coeff_max = info_dict["coeff_max"]
+    if iter < iter_start:
+        return coeff_min
+    elif iter > iter_end:
+        return coeff_max
+    else:
+        return coeff_min + (coeff_max - coeff_min) * iter / iter_end
 
-
+'''
 x_values = np.linspace(0, 1, 200)
-path = 'E:\\Calculations\\2024May19\\Testing_HalfCylinder_it400_eps0.01_gaussianPenalty_sig0.1_constantCoeff50'
-#for i in range(400):
-
-#penalties = np.loadtxt(path + f'\\Penalties\\Penalty{i}.txt')
-#parameters = np.loadtxt(path + f'\\Params\\Param{i}.txt')
-#penalty_gradients = np.loadtxt(path + f'\\Gradients_Penalty\\Gradient{i}.txt')
-
 plt.figure()
 plt.plot(x_values, gradGaussian(x_values, 0.15, 0.5))
-#plt.plot(parameters, penalty_gradients, 'o')
-#plt.savefig(path + f"\\Debugging\\debugginggradient{i}.png")
-
 plt.figure()
 plt.plot(x_values, gaussian(x_values, 0.15, 0.5))
-#plt.plot(parameters, penalties, 'o')
-#plt.savefig(path + f"\\Debugging\\debugging{i}.png")
 plt.show()
-
-#plt.show()
+'''

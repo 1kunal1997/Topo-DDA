@@ -32,14 +32,58 @@
     "save_params": true,
     "save_penalties": true,
     "base_path": "E:\\Calculations\\2024May23\\",
-    "penalty_type": "parabolic",
-    "coeff_type": "constant",
-    "coeff_min": 0.0,
-    "coeff_max": 0.5,
-    "sigma": 0.2,
-    "mu": 0.5,
-    "slope": 1.5,
-    "coeff_const": 0.1,
+
+    "penalty_type": "triangular",
+    "penalty_configs": {
+        "gaussian": {
+            "sigma": 0.15,
+            "mu": 0.5
+        },
+        "triangular": {
+            "slope": 3.0
+        },
+        "parabolic": {}
+    },
+
+    "coeff_type": "piecewise_absolute",
+    "coeff_configs": {
+        "constant": {
+            "coeff_const": 1.0
+        },
+        "exp": {
+            "base": 100,
+            "iter_start": 0,
+            "iter_end": 300,
+            "coeff_min": 0.0,
+            "coeff_max": 0.5
+        },
+        "lienar": {
+            "iter_start": 0,
+            "iter_end": 400,
+            "coeff_min": 0.0,
+            "coeff_max": 0.5
+        },
+        "piecewise": {
+            "frac1": 0.25,
+            "frac2": 0.5, 
+            "frac3": 0.75, 
+            "iter_end": 400, 
+            "coeff_min": 0.0, 
+            "coeff_max": 0.5, 
+            "denom1": 5, 
+            "denom2": 2.5
+        },
+        "piecewise_absolute": {
+            "iter1": 200,
+            "iter2": 280, 
+            "iter3": 320, 
+            "coeff_min": 0.0, 
+            "coeff_max": 0.5, 
+            "denom1": 5, 
+            "denom2": 2.5
+        }
+    },
+
     "plot_structures": true,
     "plot_solid_structures": false,
     "plot_fields": false,

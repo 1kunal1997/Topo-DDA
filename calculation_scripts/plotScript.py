@@ -68,11 +68,11 @@ def _plotPenaltyGradients(it_start, it_end, num_skip, full_path):
 
 def _plotPenaltyShapes(penalty_type, full_path):
     if penalty_type == 'parabolic':
-        return plotting.plotParabolic(full_path)
+        return plotting.plotParabolic(full_path, penalty_config)
     elif penalty_type == 'gaussian':
-        return plotting.plotGaussian(full_path, SIGMA, MU)
+        return plotting.plotGaussian(full_path, penalty_config)
     elif penalty_type == 'triangular':
-        return plotting.plotTriangular(full_path, SLOPE)
+        return plotting.plotTriangular(full_path, penalty_config)
     
 def _createDirectories(path):
     plot_dict = {
@@ -106,11 +106,10 @@ geometry_shape = parsed_json["geometry_shape"]
 evo_max_iter = parsed_json["evo_max_iteration"]
 
 penalty_type = parsed_json["penalty_type"]
+penalty_config = parsed_json["penalty_configs"][penalty_type]
 coeff_type = parsed_json["coeff_type"]
-SIGMA = parsed_json["sigma"]
-MU = parsed_json["mu"]
-SLOPE = parsed_json["slope"]
 
+# plotting flags
 plot_structures = parsed_json["plot_structures"]
 plot_solid_structures = parsed_json["plot_solid_structures"]
 plot_fields = parsed_json["plot_fields"]             # umbrella flag for no E-Field plots at all

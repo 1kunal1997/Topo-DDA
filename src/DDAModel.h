@@ -140,7 +140,8 @@ public:
     VectorXcd devp(double epsilon, double origin);
     VectorXd calculateGradients(double epsilon_partial, double originalObjValue, int MAX_ITERATION, double MAX_ERROR);
     VectorXd gradients_filtered(VectorXd gradients, int current_it, int Max_it);
-    void UpdateParameters(VectorXd step);
+    void UpdateParametersUsingStep(VectorXd step);
+    void UpdateParameters(VectorXd values);
 
     //-----------------From AProductCore-----------------------
 

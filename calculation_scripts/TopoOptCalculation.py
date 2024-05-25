@@ -42,22 +42,22 @@ def _savePenaltyShape(penalty_type, path):
     curr_path = os.path.join(path, "Penalty_Shape.txt")
     x_values = np.linspace(0, 1, 200)
     if penalty_type == 'parabolic':
-        table = np.column_stack((x_values, binarizers.parabolic(x_values)))
+        table = np.column_stack((x_values, binarizers.parabolic(x_values, penalty_config)))
         np.savetxt(curr_path, table, delimiter=',')
         curr_path = os.path.join(path, "PenaltyGradient_Shape.txt")
-        table = np.column_stack((x_values, binarizers.gradParabolic(x_values)))
+        table = np.column_stack((x_values, binarizers.gradParabolic(x_values, penalty_config)))
         np.savetxt(curr_path, table, delimiter=',')
     elif penalty_type == 'gaussian':
-        table = np.column_stack((x_values, binarizers.gaussian(x_values, SIGMA, MU)))
+        table = np.column_stack((x_values, binarizers.gaussian(x_values, penalty_config)))
         np.savetxt(curr_path, table, delimiter=',')
         curr_path = os.path.join(path, "PenaltyGradient_Shape.txt")
-        table = np.column_stack((x_values, binarizers.gradGaussian(x_values, SIGMA, MU)))
+        table = np.column_stack((x_values, binarizers.gradGaussian(x_values, penalty_config)))
         np.savetxt(curr_path, table, delimiter=',')
     elif penalty_type == 'triangular':
-        table = np.column_stack((x_values, binarizers.triangular(x_values, SLOPE)))
+        table = np.column_stack((x_values, binarizers.triangular(x_values, penalty_config)))
         np.savetxt(curr_path, table, delimiter=',')
         curr_path = os.path.join(path, "PenaltyGradient_Shape.txt")
-        table = np.column_stack((x_values, binarizers.gradTriangular(x_values, SLOPE)))
+        table = np.column_stack((x_values, binarizers.gradTriangular(x_values, penalty_config)))
         np.savetxt(curr_path, table, delimiter=',')
 
 def _saveCurrentEField(electric_field, path, iteration):
@@ -76,21 +76,7 @@ def _savePenaltyGradients(penalty_gradients, path, iteration):
     curr_path = os.path.join(path, f"Gradient_Penalty_Values/Gradient{iteration}.txt")
     np.savetxt(curr_path, penalty_gradients, delimiter='\n')
 
-def _createDirectories(path, save_structures, save_fields):
-
-    Path(path).mkdir(parents=True, exist_ok=True)
-    if save_structures:
-        Path(os.path.join(path, "Structure_Values")).mkdir(parents=True, exist_ok=True)
-    if save_fields:
-        Path(os.path.join(path, "E-Field_Values")).mkdir(parents=True, exist_ok=True)
-    if save_params:
-        Path(os.path.join(path, "Parameter_Values")).mkdir(parents=True, exist_ok=True)
-    if save_penalties:
-        Path(os.path.join(path, "Penalty_Values")).mkdir(parents=True, exist_ok=True)
-    if save_gradients_penalty:
-        Path(os.path.join(path, "Gradient_Penalty_Values")).mkdir(parents=True, exist_ok=True)
-
-def _createDirectoriesFast(path):
+def _createDirectories(path):
     save_dict = {
             'Structure_Values': save_structures,
             'Parameter_Values': save_params,
@@ -106,31 +92,33 @@ def _createDirectoriesFast(path):
 def _calculatePenaltyGradients(parameters, penalty_type):
 
     if penalty_type == 'parabolic':
-        return binarizers.gradParabolic(parameters)
+        return binarizers.gradParabolic(parameters, penalty_config)
     elif penalty_type == 'gaussian':
-        return binarizers.gradGaussian(parameters, SIGMA, MU)
+        return binarizers.gradGaussian(parameters, penalty_config)
     elif penalty_type == 'triangular':
-        return binarizers.gradTriangular(parameters, SLOPE)
+        return binarizers.gradTriangular(parameters, penalty_config)
     
 def _calculatePenalty(parameters, penalty_type):
 
     if penalty_type == 'parabolic':
-        return binarizers.parabolic(parameters)
+        return binarizers.parabolic(parameters, penalty_config)
     elif penalty_type == 'gaussian':
-        return binarizers.gaussian(parameters, SIGMA, MU)
+        return binarizers.gaussian(parameters, penalty_config)
     elif penalty_type == 'triangular':
-        return binarizers.triangular(parameters, SLOPE)
+        return binarizers.triangular(parameters, penalty_config)
 
-def _calculatePenaltyCoefficient(iteration, evo_max_iter, coeff_min, coeff_max, coeff_type):
+def _calculatePenaltyCoefficient(iteration, coeff_type):
 
     if coeff_type == 'piecewise':
-        return binarizers.piecewise_update(iteration, evo_max_iter, coeff_min, coeff_max)
+        return binarizers.piecewise_update(iteration, coeff_config)
+    if coeff_type == 'piecewise_absolute':
+        return binarizers.piecewise_update_absolute(iteration, coeff_config)
     elif coeff_type == 'linear':
-        return binarizers.linear_update(iteration, evo_max_iter, coeff_min, coeff_max)
+        return binarizers.linear_update(iteration, coeff_config)
     elif coeff_type == 'exp':
-        return binarizers.exp_update(iteration, 299, coeff_min, coeff_max)
+        return binarizers.exp_update(iteration, coeff_config)
     elif coeff_type == 'constant':
-        return COEFF_CONST
+        return coeff_config["coeff_const"]
 
 # CODE STARTS HERE!!!
 print(f"the argument passed into calcultion script is: {sys.argv[1]} ")
@@ -167,24 +155,19 @@ base_path = parsed_json["base_path"]
 
 #penaltyList = ['parabolic', 'gaussian', 'triangular']
 penalty_type = parsed_json["penalty_type"]
-#coeffList = ['constant', 'linear', 'exp', 'piecewise']
+#coeffList = ['constant', 'linear', 'exp', 'piecewise', 'piecewise_absolute]
 coeff_type = parsed_json["coeff_type"]
 
 step_size = parsed_json["step_size"]
 evo_max_iter = parsed_json["evo_max_iteration"]
-coeff_min = parsed_json["coeff_min"]
-coeff_max = parsed_json["coeff_max"]
 
-#TODO: these constants are used to initialize the binarizers. Find a way to only make these if the
-# appropriate binarizer is called.
-COEFF_CONST = parsed_json["coeff_const"]
-SIGMA = parsed_json["sigma"]
-MU = parsed_json["mu"]
-SLOPE = parsed_json["slope"]
+penalty_config = parsed_json["penalty_configs"][penalty_type]
+coeff_config = parsed_json["coeff_configs"][coeff_type]
+SLOPE = penalty_config["slope"]
         
-full_path = base_path + f"TestHalfCylinder_it{evo_max_iter}_eps{step_size}_{penalty_type}Penalty_{coeff_type}Coeff{COEFF_CONST}"
+full_path = base_path + f"TestPenaltyConfig_HalfCylinder_it{evo_max_iter}_eps{step_size}_{penalty_type}Penalty_slope{SLOPE}_{coeff_type}Coeff"
 print("Saving value to path: " + full_path)
-_createDirectoriesFast(full_path)
+_createDirectories(full_path)
 
 model = _constructModel()
 optimizer = optimizers.AdamOptimizer()
@@ -192,7 +175,6 @@ optimizer = optimizers.AdamOptimizer()
 all_objective_values = []
 all_coefficients = []
 avg_penalties = []
-
 
 # main iteration loop for gradient descent optimization
 for iteration in range(evo_max_iter):
@@ -221,7 +203,7 @@ for iteration in range(evo_max_iter):
     if save_penalties:
         _saveAllPenalties(penalty, full_path, iteration)        #temporary function for debugging gaussian
     avg_penalties.append(np.average(penalty))
-    coeff = _calculatePenaltyCoefficient(iteration, evo_max_iter, coeff_min, coeff_max, coeff_type)
+    coeff = _calculatePenaltyCoefficient(iteration, coeff_type)
     #coeff = 0.1
     all_coefficients.append(coeff)
 
@@ -229,7 +211,8 @@ for iteration in range(evo_max_iter):
     gradients_final = optimizer(gradients)
 
     step = step_size * gradients_final
-    model.parameters = step
+    new_params = np.clip(params + step, 0, 1)
+    model.parameters = new_params
 
 if save_objective:
     _saveObjective(all_objective_values, full_path)
@@ -247,7 +230,6 @@ with open(json_file, "w", encoding='utf-8') as jsonFile:
 
 copied_json_file = os.path.join(full_path, 'config.json')
 os.popen(f'copy {json_file} {copied_json_file}')
-
     
 
 
