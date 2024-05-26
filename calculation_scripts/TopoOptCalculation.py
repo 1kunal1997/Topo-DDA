@@ -22,20 +22,16 @@ def _constructModel():
     )
     return model
 
-def _saveCurrentStructure(all_parameters, path, iteration):
-    curr_path = os.path.join(path, f"Structure_Values/Structure{iteration}.txt")
-    np.savetxt(curr_path, all_parameters, delimiter='\n')
-
 def _saveObjective(all_obj, path):
-    curr_path = os.path.join(path, "Obj_Values.txt")
+    curr_path = os.path.join(path, "Obj.txt")
     np.savetxt(curr_path, all_obj, delimiter='\n')
 
 def _savePenaltyCoefficients(all_coeffs, path):
-    curr_path = os.path.join(path, "Coeff_Values.txt")
+    curr_path = os.path.join(path, "Coeffs.txt")
     np.savetxt(curr_path, all_coeffs, delimiter='\n')
 
 def _saveAveragePenalty(avg_penalties, path):
-    curr_path = os.path.join(path, "Average_Penalties_Values.txt")
+    curr_path = os.path.join(path, "Average_Penalties.txt")
     np.savetxt(curr_path, avg_penalties, delimiter='\n')
 
 def _savePenaltyShape(penalty_type, path):
@@ -60,29 +56,33 @@ def _savePenaltyShape(penalty_type, path):
         table = np.column_stack((x_values, binarizers.gradTriangular(x_values, penalty_config)))
         np.savetxt(curr_path, table, delimiter=',')
 
+def _saveCurrentStructure(all_parameters, path, iteration):
+    curr_path = os.path.join(path, "Structures", f"Structure{iteration}.txt")
+    np.savetxt(curr_path, all_parameters, delimiter='\n')
+
 def _saveCurrentEField(electric_field, path, iteration):
-    curr_path = os.path.join(path, f"E-Field_Values/E-Field{iteration}.txt")
+    curr_path = os.path.join(path, f"E-Fields", f"E-Field{iteration}.txt")
     np.savetxt(curr_path, electric_field, delimiter='\n')
 
 def _saveAllPenalties(penalty, path, iteration):
-    curr_path = os.path.join(path, f"Penalty_Values/Penalty{iteration}.txt")
+    curr_path = os.path.join(path, "Penalties", f"Penalty{iteration}.txt")
     np.savetxt(curr_path, penalty, delimiter='\n')
 
 def _saveAllParams(params, path, iteration):
-    curr_path = os.path.join(path, f"Parameter_Values/Param{iteration}.txt")
+    curr_path = os.path.join(path, "Parameters", f"Param{iteration}.txt")
     np.savetxt(curr_path, params, delimiter='\n')
 
 def _savePenaltyGradients(penalty_gradients, path, iteration):
-    curr_path = os.path.join(path, f"Gradient_Penalty_Values/Gradient{iteration}.txt")
+    curr_path = os.path.join(path, "Gradient_Penalties", f"Gradient{iteration}.txt")
     np.savetxt(curr_path, penalty_gradients, delimiter='\n')
 
 def _createDirectories(path):
     save_dict = {
-            'Structure_Values': save_structures,
-            'Parameter_Values': save_params,
-            'Penalty_Values': save_penalties,
-            'Gradient_Penalty_Values': save_gradients_penalty,
-            'E-Field_Values': save_fields,
+            'Structures': save_structures,
+            'Parameters': save_params,
+            'Penalties': save_penalties,
+            'Gradient_Penalties': save_gradients_penalty,
+            'E-Fields': save_fields,
         }
 
     for directory, flag in save_dict.items():
@@ -163,11 +163,12 @@ evo_max_iter = parsed_json["evo_max_iteration"]
 
 penalty_config = parsed_json["penalty_configs"][penalty_type]
 coeff_config = parsed_json["coeff_configs"][coeff_type]
-SLOPE = penalty_config["slope"]
+#SLOPE = penalty_config["slope"]
         
-full_path = base_path + f"TestPenaltyConfig_HalfCylinder_it{evo_max_iter}_eps{step_size}_{penalty_type}Penalty_slope{SLOPE}_{coeff_type}Coeff"
+full_path = base_path + f"TestHalfCylinder_it{evo_max_iter}_eps{step_size}_{penalty_type}Penalty_{coeff_type}Coeff0.1"
 print("Saving value to path: " + full_path)
-_createDirectories(full_path)
+data_path = os.path.join(full_path, "Data")
+_createDirectories(data_path)
 
 model = _constructModel()
 optimizer = optimizers.AdamOptimizer()
@@ -188,20 +189,26 @@ for iteration in range(evo_max_iter):
     
     if save_structures:
         all_parameters = model.allParameters()
-        _saveCurrentStructure(all_parameters, full_path, iteration)
+        _saveCurrentStructure(all_parameters, data_path, iteration)
     if save_fields:
         electric_field = model.getElectricField()
-        _saveCurrentEField(electric_field, full_path, iteration)
+        _saveCurrentEField(electric_field, data_path, iteration)
 
     params = model.parameters
+    '''
+    v = get_parameters()
+    v.reshape([2, -1], order='???')
+    v = np.convolve2d(filter, v)
+    set_parameters(v.flatten())
+    '''
     if save_params:
-        _saveAllParams(params, full_path, iteration)           #temporary function for debugging gaussian
+        _saveAllParams(params, data_path, iteration)           #temporary function for debugging gaussian
     penalty_gradients = _calculatePenaltyGradients(params, penalty_type)
     if save_gradients_penalty:
-        _savePenaltyGradients(penalty_gradients, full_path, iteration) #also temporary but could keep.
+        _savePenaltyGradients(penalty_gradients, data_path, iteration) #also temporary but could keep.
     penalty = _calculatePenalty(params, penalty_type)
     if save_penalties:
-        _saveAllPenalties(penalty, full_path, iteration)        #temporary function for debugging gaussian
+        _saveAllPenalties(penalty, data_path, iteration)        #temporary function for debugging gaussian
     avg_penalties.append(np.average(penalty))
     coeff = _calculatePenaltyCoefficient(iteration, coeff_type)
     #coeff = 0.1
@@ -215,13 +222,13 @@ for iteration in range(evo_max_iter):
     model.parameters = new_params
 
 if save_objective:
-    _saveObjective(all_objective_values, full_path)
+    _saveObjective(all_objective_values, data_path)
 if save_penalty_coefficients:
-    _savePenaltyCoefficients(all_coefficients, full_path)
+    _savePenaltyCoefficients(all_coefficients, data_path)
 if save_average_penalty:
-    _saveAveragePenalty(avg_penalties, full_path)
+    _saveAveragePenalty(avg_penalties, data_path)
 if save_penalty_shape:
-    _savePenaltyShape(penalty_type, full_path)
+    _savePenaltyShape(penalty_type, data_path)
 
 parsed_json["full_path"] = full_path
 

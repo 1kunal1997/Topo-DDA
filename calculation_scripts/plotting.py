@@ -5,9 +5,9 @@ from matplotlib import cm
 from scipy import ndimage
 import os
 
-def plotObjectiveFunction(max_iterations, path):
+def plotObjectiveFunction(max_iterations, data_path, full_path):
     #plt.figure(1)
-    obj=np.loadtxt(os.path.join(path, "Obj_Values.txt"))
+    obj=np.loadtxt(os.path.join(data_path, "Obj.txt"))
     iterations = np.arange(max_iterations)
     plt.plot(iterations, obj)
     #plt.legend(loc='lower right')
@@ -16,11 +16,11 @@ def plotObjectiveFunction(max_iterations, path):
     plt.xlabel('Iteration #')
     plt.rc('axes', titlesize=14)     # fontsize of the axes title
     plt.rc('axes', labelsize=12)    # fontsize of the x and y labels
-    plt.savefig(os.path.join(path, "obj.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(full_path, "obj.png"), bbox_inches='tight')
     plt.close()
 
-def plotPenaltyCoefficients(max_iterations, path):
-    coeffs=np.loadtxt(os.path.join(path, "Coeff_Values.txt"))
+def plotPenaltyCoefficients(max_iterations, data_path, plot_path):
+    coeffs=np.loadtxt(os.path.join(data_path, "Coeffs.txt"))
     iterations = np.arange(max_iterations)
     plt.plot(iterations, coeffs)
     #plt.legend(loc='lower right')
@@ -29,11 +29,11 @@ def plotPenaltyCoefficients(max_iterations, path):
     plt.xlabel('Iteration #')
     plt.rc('axes', titlesize=14)     # fontsize of the axes title
     plt.rc('axes', labelsize=12)    # fontsize of the x and y labels
-    plt.savefig(os.path.join(path, "penalty_coeffs.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(plot_path, "Coefficients.png"), bbox_inches='tight')
     plt.close()
 
-def plotAveragePenalty(max_iterations, path):
-    penalties=np.loadtxt(os.path.join(path, "Penalty_Values.txt"))
+def plotAveragePenalty(max_iterations, data_path, plot_path):
+    penalties=np.loadtxt(os.path.join(data_path, "Penalties.txt"))
     iterations = np.arange(max_iterations)
     plt.plot(iterations, penalties)
     #plt.legend(loc='lower right')
@@ -42,13 +42,13 @@ def plotAveragePenalty(max_iterations, path):
     plt.xlabel('Iteration #')
     plt.rc('axes', titlesize=14)     # fontsize of the axes title
     plt.rc('axes', labelsize=12)    # fontsize of the x and y labels
-    plt.savefig(os.path.join(path, "average_penalty.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(plot_path, "average_penalty.png"), bbox_inches='tight')
     plt.close()
 
-def plotPenalties(path, iteration):
-    x, penalty_shape=np.loadtxt(os.path.join(path, "Penalty_Shape.txt"), delimiter=',', unpack=True)
-    params=np.loadtxt(os.path.join(path, "Parameter_Values", f"Param{iteration}.txt"))
-    penalties = np.loadtxt(os.path.join(path, "Penalty_Values", f"Penalty{iteration}.txt"))
+def plotPenalties(data_path, plot_path, iteration):
+    x, penalty_shape=np.loadtxt(os.path.join(data_path, "Penalty_Shape.txt"), delimiter=',', unpack=True)
+    params=np.loadtxt(os.path.join(data_path, "Parameters", f"Param{iteration}.txt"))
+    penalties = np.loadtxt(os.path.join(data_path, "Penalties", f"Penalty{iteration}.txt"))
     plt.plot(x, penalty_shape)
     plt.plot(params, penalties, 'o')
     #plt.legend(loc='lower right')
@@ -57,13 +57,13 @@ def plotPenalties(path, iteration):
     plt.xlabel('Pixel Value')
     plt.rc('axes', titlesize=14)     # fontsize of the axes title
     plt.rc('axes', labelsize=12)    # fontsize of the x and y labels
-    plt.savefig(os.path.join(path, "Penalty_Plots", f"penalty{iteration}.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(plot_path, "Penalties", f"penalty{iteration}.png"), bbox_inches='tight')
     plt.close()
 
-def plotPenaltyGradients(path, iteration):
-    x, penalty_gradient_shape=np.loadtxt(os.path.join(path, "PenaltyGradient_Shape.txt"), delimiter=',', unpack=True)
-    params=np.loadtxt(os.path.join(path, "Parameter_Values", f"Param{iteration}.txt"))
-    gradients_penalty = np.loadtxt(os.path.join(path, "Gradient_Penalty_Values", f"Gradient{iteration}.txt"))
+def plotPenaltyGradients(data_path, plot_path, iteration):
+    x, penalty_gradient_shape=np.loadtxt(os.path.join(data_path, "PenaltyGradient_Shape.txt"), delimiter=',', unpack=True)
+    params=np.loadtxt(os.path.join(data_path, "Parameters", f"Param{iteration}.txt"))
+    gradients_penalty = np.loadtxt(os.path.join(data_path, "Gradients_Penalty", f"Gradient{iteration}.txt"))
     plt.plot(x, penalty_gradient_shape)
     plt.plot(params, gradients_penalty, 'o')
     #plt.legend(loc='lower right')
@@ -72,11 +72,11 @@ def plotPenaltyGradients(path, iteration):
     plt.xlabel('Pixel Value')
     plt.rc('axes', titlesize=14)     # fontsize of the axes title
     plt.rc('axes', labelsize=12)    # fontsize of the x and y labels
-    plt.savefig(os.path.join(path, "Gradient_Penalty_Plots", f"penaltyGradient_{iteration}.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(plot_path, "Gradients_Penalty", f"penaltyGradient_{iteration}.png"), bbox_inches='tight')
     plt.close()
 
-def plotParabolic(path, info_dict):
-    x, penalty_shape=np.loadtxt(os.path.join(path, "Penalty_Shape.txt"), delimiter=',', unpack=True)
+def plotParabolic(data_path, plot_path, info_dict):
+    x, penalty_shape=np.loadtxt(os.path.join(data_path, "Penalty_Shape.txt"), delimiter=',', unpack=True)
     plt.plot(x, penalty_shape)
     #plt.legend(loc='lower right')
     plt.title('Parabolic Penalty')
@@ -84,10 +84,10 @@ def plotParabolic(path, info_dict):
     plt.xlabel('Pixel Value')
     plt.rc('axes', titlesize=14)     # fontsize of the axes title
     plt.rc('axes', labelsize=12)    # fontsize of the x and y labels
-    plt.savefig(os.path.join(path, "penalty_shape.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(plot_path, "penalty_shape.png"), bbox_inches='tight')
     plt.close()
 
-    x, penalty_gradient_shape=np.loadtxt(os.path.join(path, "PenaltyGradient_Shape.txt"), delimiter=',', unpack=True)
+    x, penalty_gradient_shape=np.loadtxt(os.path.join(data_path, "PenaltyGradient_Shape.txt"), delimiter=',', unpack=True)
     plt.plot(x, penalty_gradient_shape)
     #plt.legend(loc='lower right')
     plt.title('Gradient of Parabolic Penalty')
@@ -95,13 +95,13 @@ def plotParabolic(path, info_dict):
     plt.xlabel('Pixel Value')
     plt.rc('axes', titlesize=14)     # fontsize of the axes title
     plt.rc('axes', labelsize=12)    # fontsize of the x and y labels
-    plt.savefig(os.path.join(path, "penaltyGradient_shape.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(plot_path, "penaltyGradient_shape.png"), bbox_inches='tight')
     plt.close()
 
-def plotGaussian(path, info_dict):
+def plotGaussian(data_path, plot_path, info_dict):
     sigma = info_dict["sigma"]
     mu = info_dict["mu"]
-    x, penalty_shape=np.loadtxt(os.path.join(path, "Penalty_Shape.txt"), delimiter=',', unpack=True)
+    x, penalty_shape=np.loadtxt(os.path.join(data_path, "Penalty_Shape.txt"), delimiter=',', unpack=True)
     plt.plot(x, penalty_shape)
     #plt.legend(loc='lower right')
     plt.title(f'Gaussian Penalty, Width={sigma}, Center at {mu}')
@@ -109,10 +109,10 @@ def plotGaussian(path, info_dict):
     plt.xlabel('Pixel Value')
     plt.rc('axes', titlesize=14)     # fontsize of the axes title
     plt.rc('axes', labelsize=12)    # fontsize of the x and y labels
-    plt.savefig(os.path.join(path, "penalty_shape.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(plot_path, "penalty_shape.png"), bbox_inches='tight')
     plt.close()
 
-    x, penalty_gradient_shape=np.loadtxt(os.path.join(path, "PenaltyGradient_Shape.txt"), delimiter=',', unpack=True)
+    x, penalty_gradient_shape=np.loadtxt(os.path.join(data_path, "PenaltyGradient_Shape.txt"), delimiter=',', unpack=True)
     plt.plot(x, penalty_gradient_shape)
     #plt.legend(loc='lower right')
     plt.title(f'Gradient of Gaussian Penalty, Width={sigma}, Center at {mu}')
@@ -120,12 +120,12 @@ def plotGaussian(path, info_dict):
     plt.xlabel('Pixel Value')
     plt.rc('axes', titlesize=14)     # fontsize of the axes title
     plt.rc('axes', labelsize=12)    # fontsize of the x and y labels
-    plt.savefig(os.path.join(path, "penaltyGradient_shape.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(plot_path, "penaltyGradient_shape.png"), bbox_inches='tight')
     plt.close()
 
-def plotTriangular(path, info_dict):
+def plotTriangular(data_path, plot_path, info_dict):
     slope = info_dict["slope"]
-    x, penalty_shape=np.loadtxt(os.path.join(path, "Penalty_Shape.txt"), delimiter=',', unpack=True)
+    x, penalty_shape=np.loadtxt(os.path.join(data_path, "Penalty_Shape.txt"), delimiter=',', unpack=True)
     plt.plot(x, penalty_shape)
     #plt.legend(loc='lower right')
     plt.title(f'Triangular Penalty, Slope={slope}')
@@ -133,10 +133,10 @@ def plotTriangular(path, info_dict):
     plt.xlabel('Pixel Value')
     plt.rc('axes', titlesize=14)     # fontsize of the axes title
     plt.rc('axes', labelsize=12)    # fontsize of the x and y labels
-    plt.savefig(os.path.join(path, "penalty_shape.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(plot_path, "penalty_shape.png"), bbox_inches='tight')
     plt.close()
 
-    x, penalty_gradient_shape=np.loadtxt(os.path.join(path, "PenaltyGradient_Shape.txt"), delimiter=',', unpack=True)
+    x, penalty_gradient_shape=np.loadtxt(os.path.join(data_path, "PenaltyGradient_Shape.txt"), delimiter=',', unpack=True)
     plt.plot(x, penalty_gradient_shape)
     #plt.legend(loc='lower right')
     plt.title(f'Gradient of Triangular Penalty, Slope={slope}')
@@ -144,7 +144,7 @@ def plotTriangular(path, info_dict):
     plt.xlabel('Pixel Value')
     plt.rc('axes', titlesize=14)     # fontsize of the axes title
     plt.rc('axes', labelsize=12)    # fontsize of the x and y labels
-    plt.savefig(os.path.join(path, "penaltyGradient_shape.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(plot_path, "penaltyGradient_shape.png"), bbox_inches='tight')
     plt.close()
 
 def Shape(geometry,diel,d,angle1=225,angle2=45,colormax=1,shapebarrier=0.5,plotDpi=100,iteration=-1,position="./",FullLattice=False):
@@ -215,14 +215,14 @@ def Shape(geometry,diel,d,angle1=225,angle2=45,colormax=1,shapebarrier=0.5,plotD
 
     fig.suptitle(f"iteration{iteration}")
     if FullLattice:
-        plt.savefig(os.path.join(position, f"SolidStructure_Plots/Structure{iteration}.png"),dpi=plotDpi)
+        plt.savefig(os.path.join(position, "SolidStructures", f"Structure{iteration}.png"),dpi=plotDpi)
     else:
-        plt.savefig(os.path.join(position, f"Structure_Plots/Structure{iteration}.png"),dpi=plotDpi)
+        plt.savefig(os.path.join(position, "Structures", f"Structure{iteration}.png"),dpi=plotDpi)
     #plt.show()
     plt.close()
 
 
-def EField_slice(geometry, E_tot, d, plotDpi=100, Elimit=False, Elimitlow=-1,Elimithigh=-1,Xslice=-1,Yslice=-1,Zslice=-1,iteration=-1,position="./"):
+def EField_slice(geometry, E_tot, d, plotDpi=100, Elimit=False, Elimitlow=-1,Elimithigh=-1,Xslice=-1,Yslice=-1,Zslice=-1,iteration=-1, position="./"):
     """Plot the E field of object as arrow matrix.
     # Input:
     # --SC         SolutionClass
@@ -258,15 +258,15 @@ def EField_slice(geometry, E_tot, d, plotDpi=100, Elimit=False, Elimitlow=-1,Eli
     slicedim=-1
     
     if Xslice!=-1:
-        position = os.path.join(position, "E-Field_XSlice_Plots")
+        position = os.path.join(position, "E-Field_XSlice")
         slicedim=0
         Eslice=np.zeros((Y, Z))
     if Yslice!=-1:
-        position = os.path.join(position, "E-Field_YSlice_Plots")
+        position = os.path.join(position, "E-Field_YSlice")
         slicedim=1
         Eslice=np.zeros((Z, X))
     if Zslice!=-1:
-        position = os.path.join(position, "E-Field_ZSlice_Plots")
+        position = os.path.join(position, "E-Field_ZSlice")
         slicedim=2
         Eslice=np.zeros((X, Y))
     
@@ -358,7 +358,7 @@ def EField(geometry, k_dir, E_dir, E_tot, d, iteration=-1, position="./"):
     ax1.set_zlabel("z[nm]")
     ax1.grid(False)
     fig1.suptitle(f"E field - Arrow plot\n {E_dir}")
-    plt.savefig(os.path.join(position, f"E-Field_Vector_Plots/E_field_arrow{iteration}.png"))
+    plt.savefig(os.path.join(position, "E-Field_Vector", f"E_field_arrow{iteration}.png"))
 
     fig2 = plt.figure()
     ax2 = fig2.add_subplot(111, projection='3d')
@@ -391,4 +391,4 @@ def EField(geometry, k_dir, E_dir, E_tot, d, iteration=-1, position="./"):
     fig2.colorbar(colorset, shrink=0.9, aspect=10, cax=ax2.inset_axes([-0.1, 0.1, 0.05, 0.8]))
 
     fig2.suptitle(f"E field - Scatter plot\n, {k_dir} - iteration{iteration}") 
-    plt.savefig(os.path.join(position, f"E-Field_Vectors/E_field{iteration}.png"))
+    plt.savefig(os.path.join(position, "E-Field_Vector", f"E_field{iteration}.png"))

@@ -31,12 +31,12 @@
     "save_gradients_penalty": true,
     "save_params": true,
     "save_penalties": true,
-    "base_path": "E:\\Calculations\\2024May23\\",
+    "base_path": "E:\\Calculations\\2024May25\\",
 
-    "penalty_type": "triangular",
+    "penalty_type": "parabolic",
     "penalty_configs": {
         "gaussian": {
-            "sigma": 0.15,
+            "sigma": 0.2,
             "mu": 0.5
         },
         "triangular": {
@@ -45,10 +45,10 @@
         "parabolic": {}
     },
 
-    "coeff_type": "piecewise_absolute",
+    "coeff_type": "constant",
     "coeff_configs": {
         "constant": {
-            "coeff_const": 1.0
+            "coeff_const": 0.1
         },
         "exp": {
             "base": 100,
@@ -68,29 +68,29 @@
             "frac2": 0.5, 
             "frac3": 0.75, 
             "iter_end": 400, 
-            "coeff_min": 0.0, 
-            "coeff_max": 0.5, 
-            "denom1": 5, 
-            "denom2": 2.5
+            "coeff1": 0.0, 
+            "coeff2": 0.5, 
+            "coeff3": 1.5, 
+            "coeff4": 5.0
         },
         "piecewise_absolute": {
             "iter1": 200,
             "iter2": 280, 
             "iter3": 320, 
-            "coeff_min": 0.0, 
-            "coeff_max": 0.5, 
-            "denom1": 5, 
-            "denom2": 2.5
+            "coeff1": 0.0, 
+            "coeff2": 0.5, 
+            "coeff3": 5, 
+            "coeff4": 2.5
         }
     },
 
     "plot_structures": true,
-    "plot_solid_structures": false,
-    "plot_fields": false,
-    "plot_z_field": false,
-    "plot_y_field": false,
-    "plot_x_field": false,
-    "plot_vectors": false,
+    "plot_solid_structures": true,
+    "plot_fields": true,
+    "plot_z_field": true,
+    "plot_y_field": true,
+    "plot_x_field": true,
+    "plot_vectors": true,
     "plot_penalties": true,
     "plot_gradients_penalty": true,
     "full_path": "E:\\Calculations\\2024May19\\Testing_HalfCylinder_it400_eps0.01_gaussianPenalty_sig0.1_constantCoeff5.0"

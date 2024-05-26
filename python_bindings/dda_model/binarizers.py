@@ -16,7 +16,7 @@ def gaussian(parameters, info_dict):
 def gradGaussian(parameters, info_dict):
     sig = info_dict["sigma"]
     mu = info_dict["mu"]
-    return -(parameters - mu) * gaussian(parameters, sig, mu) / np.square(sig)
+    return -(parameters - mu) * gaussian(parameters, info_dict) / np.square(sig)
 
 def triangular(parameters, info_dict):
     slope = info_dict["slope"]
@@ -46,36 +46,36 @@ def piecewise_update_absolute(iter, info_dict):
     iter1 = info_dict["iter1"] 
     iter2 = info_dict["iter2"] 
     iter3 = info_dict["iter3"]
-    coeff_min = info_dict["coeff_min"]
-    coeff_max = info_dict["coeff_max"] 
-    denom1 = info_dict["denom1"]
-    denom2 = info_dict["denom2"]
+    coeff1 = info_dict["coeff1"]
+    coeff2 = info_dict["coeff2"] 
+    coeff3 = info_dict["coeff3"]
+    coeff4 = info_dict["coeff4"]
     if iter <= iter1:
-        return coeff_min
+        return coeff1
     elif iter1 < iter <= iter2:
-        return coeff_min + (coeff_max - coeff_min) / denom1
+        return coeff2
     elif iter2 < iter <= iter3:
-        return coeff_min + (coeff_max - coeff_min) / denom2
+        return coeff3
     else:
-        return coeff_max
+        return coeff4
 
 def piecewise_update(iter, info_dict):
     frac1 = info_dict["frac1"] 
     frac2 = info_dict["frac2"] 
     frac3 = info_dict["frac3"]
     iter_end = info_dict["iter_end"]
-    coeff_min = info_dict["coeff_min"]
-    coeff_max = info_dict["coeff_max"] 
-    denom1 = info_dict["denom1"]
-    denom2 = info_dict["denom2"]
+    coeff1 = info_dict["coeff1"]
+    coeff2 = info_dict["coeff2"] 
+    coeff3 = info_dict["coeff3"]
+    coeff4 = info_dict["coeff4"]
     if iter <= frac1*iter_end:
-        return coeff_min
+        return coeff1
     elif frac1*iter_end < iter <= frac2*iter_end:
-        return coeff_min + (coeff_max - coeff_min) / denom1
+        return coeff2
     elif frac2*iter_end < iter <= frac3*iter_end:
-        return coeff_min + (coeff_max - coeff_min) / denom2
+        return coeff3
     else:
-        return coeff_max
+        return coeff4
     
 def exp_update(iter, info_dict):
     base = info_dict["base"]
