@@ -711,7 +711,7 @@ void DDAModel::assignFreeWeightsForFilter( ) {
     }
 }
 
-void DDAModel::UpdateParameters(VectorXd step) {
+void DDAModel::UpdateParametersUsingStep(VectorXd step) {
     if (verbose){
         cout << "step in UpdateParameters: " << step.mean( ) << endl;
     }
@@ -730,6 +730,33 @@ void DDAModel::UpdateParameters(VectorXd step) {
         if ( parameters(i) <= 0 ) {
             parameters(i) = 0;
         }
+    }
+
+    for ( int i = 0; i <= N - 1; i++ ) {
+        int position = geometryPara(i);
+        double value = parameters(position);
+        dielectric_old(3 * i) = value;
+        dielectric_old(3 * i + 1) = value;
+        dielectric_old(3 * i + 2) = value;
+    }
+
+    UpdateAlpha( );
+
+}
+
+void DDAModel::UpdateParameters(VectorXd values) {
+    if (verbose){
+        cout << "values in UpdateParameters: " << values.mean( ) << endl;
+    }
+
+    int Parasize = parameters.size( );
+    if ( Parasize != values.size( ) ) {
+        cout << "ERROR: In CoreStructure::UpdateStr(VectorXd step), step.size!=FreePara.size";
+        throw 1;
+    }
+
+    for ( int i = 0; i <= Parasize - 1; i++ ) {
+        parameters(i) = values(i);
     }
 
     for ( int i = 0; i <= N - 1; i++ ) {
@@ -1224,6 +1251,10 @@ void DDAModel::output_to_file(string save_position, int iteration) {
     fout.close();
 }
 
+VectorXcd DDAModel::get_EResult() {
+    return EResult;
+}
+
 double DDAModel::get_beta( ) {
     return Filterstats->get_beta( );
 }
@@ -1309,6 +1340,11 @@ VectorXd* DDAModel::get_parameters( ) {
 // Making this return a copy, temporarily, to get python bindings to work.
 VectorXd DDAModel::get_parameter_copy( ) {
     return parameters;
+}
+
+// Making this return a copy, temporarily, to get python bindings to work.
+VectorXd DDAModel::get_dielectrics_copy( ) {
+    return dielectric_old;
 }
 
 VectorXd* DDAModel::get_Para_origin( ) {

@@ -132,13 +132,16 @@ public:
     vector<vector<WeightPara>>* get_FreeWeight( );
     vector<vector<int>>* get_Paratogeometry( );
     VectorXd* get_dielectric_old( );
+    VectorXd get_dielectrics_copy();
     VectorXd* get_diel_old_max( );
+    VectorXcd get_EResult();
 
     tuple<VectorXd, VectorXcd> devx_and_Adevxp(double epsilon, double origin);
     VectorXcd devp(double epsilon, double origin);
     VectorXd calculateGradients(double epsilon_partial, double originalObjValue, int MAX_ITERATION, double MAX_ERROR);
     VectorXd gradients_filtered(VectorXd gradients, int current_it, int Max_it);
-    void UpdateParameters(VectorXd step);
+    void UpdateParametersUsingStep(VectorXd step);
+    void UpdateParameters(VectorXd values);
 
     //-----------------From AProductCore-----------------------
 

@@ -157,7 +157,7 @@ sici_n = 1_000_000
 integral_positions = np.linspace(sici_delta, sici_delta * sici_n, sici_n - 1)
 si, ci = sici(integral_positions)
 
-model = py_dda_model.DDAModel(
+model = dda_model.DDAModel(
     0.0, 50.0, 0.5, "piecewise", [100], [2.0], False,
     "4fold", [10.5, 10.5], True,
     "IntegratedE", [2.0, 0.0, 21.0, 0.0, 21.0, 0.0, 9.0, 0.95, 50.0],

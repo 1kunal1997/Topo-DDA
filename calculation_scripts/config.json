@@ -1,0 +1,96 @@
+{
+    "sym_axis": [
+        10.5,
+        10.5
+    ],
+    "geometry_shape": [
+        22,
+        22,
+        10
+    ],
+    "pixel_size": 15.0,
+    "light_direction": [
+        0,
+        0,
+        1
+    ],
+    "light_polarization": [
+        1,
+        0,
+        0
+    ],
+    "wavelength": 542.0,
+    "evo_max_iteration": 400,
+    "step_size": 0.01,
+    "base_path": "E:\\Calculations\\2024May27\\RampDownObj\\",
+    "penalty_type": "triangular",
+    "penalty_configs": {
+        "gaussian": {
+            "sigma": 0.2,
+            "mu": 0.5
+        },
+        "triangular": {
+            "slope": 1.0
+        },
+        "parabolic": {}
+    },
+    "coeff_type": "linear",
+    "coeff_configs": {
+        "constant": {
+            "coeff_const": 0.1
+        },
+        "exp": {
+            "base": 100,
+            "iter_start": 0,
+            "iter_end": 300,
+            "coeff_min": 0.0,
+            "coeff_max": 1.0
+        },
+        "linear": {
+            "iter_start": 0,
+            "iter_end": 400,
+            "coeff_min": 0.0,
+            "coeff_max": 1.0
+        },
+        "piecewise": {
+            "frac1": 0.25,
+            "frac2": 0.5,
+            "frac3": 0.75,
+            "iter_end": 400,
+            "coeff1": 0.0,
+            "coeff2": 0.4,
+            "coeff3": 0.7,
+            "coeff4": 1.0
+        },
+        "piecewise_absolute": {
+            "iter1": 200,
+            "iter2": 280,
+            "iter3": 320,
+            "coeff1": 0.0,
+            "coeff2": 0.5,
+            "coeff3": 5,
+            "coeff4": 2.5
+        }
+    },
+    "EField_config": {
+        "E_limit": true,
+        "E_limit_low": 0,
+        "E_limit_high": 16,
+        "x_slice": 11,
+        "y_slice": 11,
+        "z_slice": 9
+    },
+    "it_start": 0,
+    "it_end": 400,
+    "num_skip": 5,
+    "plot_structures": true,
+    "plot_solid_structures": false,
+    "plot_fields": true,
+    "plot_z_field": true,
+    "plot_y_field": false,
+    "plot_x_field": false,
+    "plot_vectors": false,
+    "plot_penalties": true,
+    "plot_gradients_penalty": true,
+    "full_path": "E:\\Calculations\\2024May27\\RampDownObj\\HalfCylinder_eps0.01_it700_parabolicpenalty_expCoeff"
+}
