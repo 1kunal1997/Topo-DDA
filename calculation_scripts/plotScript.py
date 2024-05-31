@@ -6,6 +6,7 @@ import itertools
 import os
 import sys
 
+#TODO: Duplicate method from __init__.py in dda_model. Need to make that one accessible
 def _generateGeometry(num_x: int, num_y: int, num_z: int):
     # Geometry is [x y z], major along the first dimension: 0 0 0, 1 0 0, 
     # 2 0 0 ... num_x 0 0, 0 1 0, 1 1 0, ... 0 num_y 0 etc.
@@ -26,16 +27,15 @@ def _plotStructures(geometry, it_start, it_end, num_skip, data_path, plot_path, 
         if i % num_skip == 0:
             print(f'Plotting the {i}th structure')
             diel=np.genfromtxt(os.path.join(data_path, "Structures", f"Structure{i}.txt"))
+            plotting.plotGeometry(geometry, diel, pixel_size, iteration=i, position=plot_path, FullLattice=full_lattice)
 
-            plotting.Shape(geometry, diel, pixel_size, iteration=i, position=plot_path, FullLattice=full_lattice)
-
-def _plotFields(geometry, it_start, it_end, num_skip, data_path, plot_path):
-    E_limit = True
-    E_limit_low = 0
-    E_limit_high = 16
-    x_slice = 11
-    y_slice = 11
-    z_slice = 9
+def _plotFields(geometry, it_start, it_end, num_skip, data_path, plot_path, config):
+    E_limit = config["E_limit"]
+    E_limit_low = config["E_limit_low"]
+    E_limit_high = config["E_limit_high"]
+    x_slice = config["x_slice"]
+    y_slice = config["y_slice"]
+    z_slice = config["z_slice"]
     for i in range(it_start, it_end):
         if i % num_skip == 0:
             print(f'Plotting the {i}th E-Field')
@@ -55,24 +55,18 @@ def _plotFields(geometry, it_start, it_end, num_skip, data_path, plot_path):
                 plotting.EField(geometry, light_direction, light_polarization, E_total, pixel_size, iteration=i, position=plot_path)
 
 def _plotPenalties(it_start, it_end, num_skip, data_path, plot_path):
+    x, penalty_shape=np.loadtxt(os.path.join(data_path, "Penalty_Shape.txt"), delimiter=',', unpack=True)
     for i in range(it_start, it_end):
         if i % num_skip == 0:
             print(f'Plotting the {i}th Penalty Plot')
-            plotting.plotPenalties(data_path, plot_path, i)
+            plotting.plotPenalties(x, penalty_shape, data_path, plot_path, i)
 
 def _plotPenaltyGradients(it_start, it_end, num_skip, data_path, plot_path):
+    x, penalty_gradient_shape=np.loadtxt(os.path.join(data_path, "PenaltyGradient_Shape.txt"), delimiter=',', unpack=True)
     for i in range(it_start, it_end):
         if i % num_skip == 0:
             print(f'Plotting the {i}th Gradient Plot (from Penalty)')
-            plotting.plotPenaltyGradients(data_path, plot_path, i)
-
-def _plotPenaltyShapes(penalty_type, data_path, plot_path):
-    if penalty_type == 'parabolic':
-        return plotting.plotParabolic(data_path, plot_path, penalty_config)
-    elif penalty_type == 'gaussian':
-        return plotting.plotGaussian(data_path, plot_path, penalty_config)
-    elif penalty_type == 'triangular':
-        return plotting.plotTriangular(data_path, plot_path, penalty_config)
+            plotting.plotPenaltyGradients(x, penalty_gradient_shape, data_path, plot_path, i)
     
 def _createDirectories(path):
     plot_dict = {
@@ -109,7 +103,6 @@ evo_max_iter = parsed_json["evo_max_iteration"]
 
 penalty_type = parsed_json["penalty_type"]
 penalty_config = parsed_json["penalty_configs"][penalty_type]
-coeff_type = parsed_json["coeff_type"]
 
 # plotting flags
 plot_structures = parsed_json["plot_structures"]
@@ -128,32 +121,24 @@ plot_penalties = parsed_json["plot_penalties"]
 
 _createDirectories(plot_path)
 geometry = _generateGeometry(geometry_shape[0], geometry_shape[1], geometry_shape[2])
-it_start = 0
-it_end = evo_max_iter
-num_skip = 1
+it_start = parsed_json["it_start"]
+it_end = parsed_json["it_end"]
+num_skip = parsed_json["num_skip"]
 
-_plotPenaltyShapes(penalty_type, data_path, plot_path)
+#_plotPenaltyShapes(penalty_type, data_path, plot_path)
+plotting.plotPenaltyShape(penalty_type, data_path, plot_path, penalty_config)
+plotting.plotStepSizes(evo_max_iter, data_path, plot_path)
+plotting.plotObjectiveFunction(evo_max_iter, data_path, full_path)
+plotting.plotPenaltyCoefficients(evo_max_iter, data_path, plot_path)
+plotting.plotAveragePenalty(evo_max_iter, data_path, plot_path)
 
-if Path(os.path.join(data_path, 'Obj.txt')).exists():
-    plotting.plotObjectiveFunction(evo_max_iter, data_path, full_path)
-
-if Path(os.path.join(data_path, 'Coeffs.txt')).exists():
-    plotting.plotPenaltyCoefficients(evo_max_iter, data_path, plot_path)
-
-if Path(os.path.join(data_path, 'Penalties.txt')).exists():
-    plotting.plotAveragePenalty(evo_max_iter, data_path, plot_path)
-
-if Path(os.path.join(data_path, 'Structures')).exists() and plot_structures:
+if plot_structures:
     _plotStructures(geometry, it_start, it_end, num_skip, data_path, plot_path)
-
 if plot_solid_structures:
     _plotStructures(geometry, it_start, it_end, num_skip, data_path, plot_path, full_lattice=True)
-
-if Path(os.path.join(data_path, 'E-Fields')).exists() and plot_fields:
-    _plotFields(geometry, it_start, it_end, num_skip, data_path, plot_path)
-
-if Path(os.path.join(data_path, 'Penalties')).exists() and plot_penalties:
+if plot_fields:
+    _plotFields(geometry, it_start, it_end, num_skip, data_path, plot_path, parsed_json["EField_config"])
+if plot_penalties:
     _plotPenalties(it_start, it_end, num_skip, data_path, plot_path)
-
-if Path(os.path.join(data_path, 'Gradients_Penalty')).exists() and plot_gradients_penalty:
+if plot_gradients_penalty:
     _plotPenaltyGradients(it_start, it_end, num_skip, data_path, plot_path)

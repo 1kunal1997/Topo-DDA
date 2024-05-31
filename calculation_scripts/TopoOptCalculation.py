@@ -37,24 +37,25 @@ def _saveAveragePenalty(avg_penalties, path):
 def _savePenaltyShape(penalty_type, path):
     curr_path = os.path.join(path, "Penalty_Shape.txt")
     x_values = np.linspace(0, 1, 200)
-    if penalty_type == 'parabolic':
-        table = np.column_stack((x_values, binarizers.parabolic(x_values, penalty_config)))
-        np.savetxt(curr_path, table, delimiter=',')
-        curr_path = os.path.join(path, "PenaltyGradient_Shape.txt")
-        table = np.column_stack((x_values, binarizers.gradParabolic(x_values, penalty_config)))
-        np.savetxt(curr_path, table, delimiter=',')
-    elif penalty_type == 'gaussian':
-        table = np.column_stack((x_values, binarizers.gaussian(x_values, penalty_config)))
-        np.savetxt(curr_path, table, delimiter=',')
-        curr_path = os.path.join(path, "PenaltyGradient_Shape.txt")
-        table = np.column_stack((x_values, binarizers.gradGaussian(x_values, penalty_config)))
-        np.savetxt(curr_path, table, delimiter=',')
-    elif penalty_type == 'triangular':
-        table = np.column_stack((x_values, binarizers.triangular(x_values, penalty_config)))
-        np.savetxt(curr_path, table, delimiter=',')
-        curr_path = os.path.join(path, "PenaltyGradient_Shape.txt")
-        table = np.column_stack((x_values, binarizers.gradTriangular(x_values, penalty_config)))
-        np.savetxt(curr_path, table, delimiter=',')
+    match penalty_type:
+        case 'parabolic':
+            table = np.column_stack((x_values, binarizers.parabolic(x_values, penalty_config)))
+            np.savetxt(curr_path, table, delimiter=',')
+            curr_path = os.path.join(path, "PenaltyGradient_Shape.txt")
+            table = np.column_stack((x_values, binarizers.gradParabolic(x_values, penalty_config)))
+            np.savetxt(curr_path, table, delimiter=',')
+        case 'gaussian':
+            table = np.column_stack((x_values, binarizers.gaussian(x_values, penalty_config)))
+            np.savetxt(curr_path, table, delimiter=',')
+            curr_path = os.path.join(path, "PenaltyGradient_Shape.txt")
+            table = np.column_stack((x_values, binarizers.gradGaussian(x_values, penalty_config)))
+            np.savetxt(curr_path, table, delimiter=',')
+        case 'triangular':
+            table = np.column_stack((x_values, binarizers.triangular(x_values, penalty_config)))
+            np.savetxt(curr_path, table, delimiter=',')
+            curr_path = os.path.join(path, "PenaltyGradient_Shape.txt")
+            table = np.column_stack((x_values, binarizers.gradTriangular(x_values, penalty_config)))
+            np.savetxt(curr_path, table, delimiter=',')
 
 def _saveCurrentStructure(all_parameters, path, iteration):
     curr_path = os.path.join(path, "Structures", f"Structure{iteration}.txt")
@@ -77,53 +78,47 @@ def _savePenaltyGradients(penalty_gradients, path, iteration):
     np.savetxt(curr_path, penalty_gradients, delimiter='\n')
 
 def _createDirectories(path):
-    save_dict = {
-            'Structures': save_structures,
-            'Parameters': save_params,
-            'Penalties': save_penalties,
-            'Gradient_Penalties': save_gradients_penalty,
-            'E-Fields': save_fields,
-        }
-
-    for directory, flag in save_dict.items():
-        if flag:
-            Path(os.path.join(path, directory)).mkdir(parents=True, exist_ok=True)
+    directories = ['Structures', 'Parameters', 'Penalties', 'Gradient_Penalties', 'E-Fields']
+    for directory in directories:
+        Path(os.path.join(path, directory)).mkdir(parents=True, exist_ok=True)
 
 def _calculatePenaltyGradients(parameters, penalty_type):
-
-    if penalty_type == 'parabolic':
-        return binarizers.gradParabolic(parameters, penalty_config)
-    elif penalty_type == 'gaussian':
-        return binarizers.gradGaussian(parameters, penalty_config)
-    elif penalty_type == 'triangular':
-        return binarizers.gradTriangular(parameters, penalty_config)
+    match penalty_type:
+        case 'parabolic':
+            return binarizers.gradParabolic(parameters, penalty_config)
+        case 'gaussian':
+            return binarizers.gradGaussian(parameters, penalty_config)
+        case 'triangular':
+            return binarizers.gradTriangular(parameters, penalty_config)
     
 def _calculatePenalty(parameters, penalty_type):
-
-    if penalty_type == 'parabolic':
-        return binarizers.parabolic(parameters, penalty_config)
-    elif penalty_type == 'gaussian':
-        return binarizers.gaussian(parameters, penalty_config)
-    elif penalty_type == 'triangular':
-        return binarizers.triangular(parameters, penalty_config)
+    match penalty_type:
+        case 'parabolic':
+            return binarizers.parabolic(parameters, penalty_config)
+        case 'gaussian':
+            return binarizers.gaussian(parameters, penalty_config)
+        case 'triangular':
+            return binarizers.triangular(parameters, penalty_config)
 
 def _calculatePenaltyCoefficient(iteration, coeff_type):
+    match coeff_type:
+        case 'piecewise':
+            return binarizers.piecewise_update(iteration, coeff_config)
+        case 'piecewise_absolute':
+            return binarizers.piecewise_update_absolute(iteration, coeff_config)
+        case 'linear':
+            return binarizers.linear_update(iteration, coeff_config)
+        case 'exp':
+            return binarizers.exp_update(iteration, coeff_config)
+        case 'constant':
+            return coeff_config["coeff_const"]
 
-    if coeff_type == 'piecewise':
-        return binarizers.piecewise_update(iteration, coeff_config)
-    if coeff_type == 'piecewise_absolute':
-        return binarizers.piecewise_update_absolute(iteration, coeff_config)
-    elif coeff_type == 'linear':
-        return binarizers.linear_update(iteration, coeff_config)
-    elif coeff_type == 'exp':
-        return binarizers.exp_update(iteration, coeff_config)
-    elif coeff_type == 'constant':
-        return coeff_config["coeff_const"]
+def _saveStepSizes(all_step_sizes, path):
+    curr_path = os.path.join(path, "stepsizes.txt")
+    np.savetxt(curr_path, all_step_sizes, delimiter='\n')
 
 # CODE STARTS HERE!!!
-print(f"the argument passed into calcultion script is: {sys.argv[1]} ")
 json_file = sys.argv[1]
-
 with open(json_file) as user_file:
     parsed_json = json.load(user_file)
 
@@ -136,17 +131,6 @@ wavelength = parsed_json["wavelength"]
 initialization = np.loadtxt("initializations/halfcylinder.txt")
 #initialization += np.random.uniform(0, 10e-3, size=initialization.shape)
 dielectric_constants = [1.01 + 0j, 5.96282 + 3.80423e-7j]
-
-# flags for saving different values from calculation
-save_objective = parsed_json["save_objective"]
-save_penalty_coefficients = parsed_json["save_penalty_coefficients"]
-save_penalty_shape = parsed_json["save_penalty_shape"]
-save_average_penalty = parsed_json["save_average_penalty"]
-save_structures = parsed_json["save_structures"]
-save_fields = parsed_json["save_fields"]
-save_gradients_penalty = parsed_json["save_gradients_penalty"]
-save_params = parsed_json["save_params"]
-save_penalties = parsed_json["save_penalties"]
 base_path = parsed_json["base_path"]
 
 #stepArray = np.logspace(-2, 0, 20)
@@ -155,7 +139,7 @@ base_path = parsed_json["base_path"]
 
 #penaltyList = ['parabolic', 'gaussian', 'triangular']
 penalty_type = parsed_json["penalty_type"]
-#coeffList = ['constant', 'linear', 'exp', 'piecewise', 'piecewise_absolute]
+#coeffList = ['constant', 'linear', 'exp', 'piecewise', 'piecewise_absolute']
 coeff_type = parsed_json["coeff_type"]
 
 step_size = parsed_json["step_size"]
@@ -163,19 +147,19 @@ evo_max_iter = parsed_json["evo_max_iteration"]
 
 penalty_config = parsed_json["penalty_configs"][penalty_type]
 coeff_config = parsed_json["coeff_configs"][coeff_type]
-#SLOPE = penalty_config["slope"]
         
-full_path = base_path + f"TestHalfCylinder_it{evo_max_iter}_eps{step_size}_{penalty_type}Penalty_{coeff_type}Coeff0.1"
+full_path = base_path + f"Verify2HalfCylinder_it{evo_max_iter}_eps{step_size}_{penalty_type}Penalty_{coeff_type}Coeff"
 print("Saving value to path: " + full_path)
 data_path = os.path.join(full_path, "Data")
 _createDirectories(data_path)
 
 model = _constructModel()
 optimizer = optimizers.AdamOptimizer()
-# step_size = 0.01 # This works better
+# step_size = 0.01 This works better
 all_objective_values = []
 all_coefficients = []
 avg_penalties = []
+all_step_sizes = []
 
 # main iteration loop for gradient descent optimization
 for iteration in range(evo_max_iter):
@@ -184,51 +168,51 @@ for iteration in range(evo_max_iter):
     objective_value = model.objective()
     print("Objective Value is: " + str(objective_value))
     all_objective_values.append(objective_value) 
-
     obj_gradients = model.gradients(objective_value)
-    
-    if save_structures:
-        all_parameters = model.allParameters()
-        _saveCurrentStructure(all_parameters, data_path, iteration)
-    if save_fields:
-        electric_field = model.getElectricField()
-        _saveCurrentEField(electric_field, data_path, iteration)
+
+    # These are only used for plotting, can be reproduced from 'params'
+    all_parameters = model.allParameters()
+    _saveCurrentStructure(all_parameters, data_path, iteration)
+    electric_field = model.getElectricField()
+    _saveCurrentEField(electric_field, data_path, iteration)
 
     params = model.parameters
+    _saveAllParams(params, data_path, iteration)  
     '''
     v = get_parameters()
     v.reshape([2, -1], order='???')
     v = np.convolve2d(filter, v)
     set_parameters(v.flatten())
-    '''
-    if save_params:
-        _saveAllParams(params, data_path, iteration)           #temporary function for debugging gaussian
+    '''         
     penalty_gradients = _calculatePenaltyGradients(params, penalty_type)
-    if save_gradients_penalty:
-        _savePenaltyGradients(penalty_gradients, data_path, iteration) #also temporary but could keep.
+    _savePenaltyGradients(penalty_gradients, data_path, iteration) 
     penalty = _calculatePenalty(params, penalty_type)
-    if save_penalties:
-        _saveAllPenalties(penalty, data_path, iteration)        #temporary function for debugging gaussian
+    _saveAllPenalties(penalty, data_path, iteration)    
     avg_penalties.append(np.average(penalty))
+
     coeff = _calculatePenaltyCoefficient(iteration, coeff_type)
     #coeff = 0.1
     all_coefficients.append(coeff)
 
-    gradients = obj_gradients - coeff*penalty_gradients
+    gradients = (1-coeff)*obj_gradients - coeff*penalty_gradients
+    #gradients = obj_gradients - coeff*penalty_gradients
     gradients_final = optimizer(gradients)
-
+    
+    # uncomment if you want a variable step size
+    '''
+    if (iteration+1) % 100 == 0:
+        step_size /= 2
+    '''
+    all_step_sizes.append(step_size)
     step = step_size * gradients_final
     new_params = np.clip(params + step, 0, 1)
     model.parameters = new_params
 
-if save_objective:
-    _saveObjective(all_objective_values, data_path)
-if save_penalty_coefficients:
-    _savePenaltyCoefficients(all_coefficients, data_path)
-if save_average_penalty:
-    _saveAveragePenalty(avg_penalties, data_path)
-if save_penalty_shape:
-    _savePenaltyShape(penalty_type, data_path)
+_saveObjective(all_objective_values, data_path)
+_savePenaltyCoefficients(all_coefficients, data_path)
+_saveAveragePenalty(avg_penalties, data_path)
+_savePenaltyShape(penalty_type, data_path)
+_saveStepSizes(all_step_sizes, data_path)
 
 parsed_json["full_path"] = full_path
 

@@ -20,26 +20,16 @@ def gradGaussian(parameters, info_dict):
 
 def triangular(parameters, info_dict):
     slope = info_dict["slope"]
-    result = np.array(parameters)
-
-    for i, para in enumerate(parameters):
-        if(para <= 0.5):
-            result[i] = slope*para
-        else:
-            result[i] = slope*(1-para)
-
+    result = np.array(parameters) * slope
+    indices = np.where(parameters > 0.5)
+    result[indices] = slope - result[indices]
     return result
 
 def gradTriangular(parameters, info_dict):
     slope = info_dict["slope"]
-    result = np.array(parameters)
-
-    for i, para in enumerate(parameters):
-        if(para <= 0.5):
-            result[i] = slope
-        else:
-            result[i] = -slope
-
+    result = np.ones_like(parameters) * slope
+    indices = np.where(parameters > 0.5)
+    result[indices] *= -1
     return result
 
 def piecewise_update_absolute(iter, info_dict):

@@ -22,6 +22,7 @@ class AdamOptimizer:
 
         return result
     
+# NOTE: Implementation does not seem to match one that Ben linked in PR (May 2024)
 class AdaGradOptimizer:
     def __init__(self):
         self.squaredGradient = 0
@@ -30,6 +31,6 @@ class AdaGradOptimizer:
 
         result = np.array(gradients)
         print("Using Adagrad Optimizer.")
-        self.squaredGradient += np.power(gradients, 2) / 100000
+        self.squaredGradient += np.power(gradients, 2)
         result = gradients / (self.squaredGradient + 1)
         return result
