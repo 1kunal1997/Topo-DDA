@@ -1344,7 +1344,9 @@ VectorXd DDAModel::get_parameter_copy( ) {
 
 // Making this return a copy, temporarily, to get python bindings to work.
 VectorXd DDAModel::get_dielectrics_copy( ) {
-    return dielectric_old;
+    return dielectric_old;  // Disgusting. Needs to not duplicate 3x.
+    // The reason why this needs fixed is because it passes 3x more data to the
+    // C++ to Python wrapper, which can require passing / copying bytes (slow).
 }
 
 VectorXd* DDAModel::get_Para_origin( ) {

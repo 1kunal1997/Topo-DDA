@@ -241,6 +241,7 @@ class DDAModelWrapper:
     def allParameters(self):
         """Returns the reflected, extruded version of the parameters."""
         p = self._model.getDielectrics()
+        p = p[::3]  # TODO: Fix format from the C++ module to not 3x duplicate.
         return self._flat_to_3d(p)
     
     def getElectricField(self):
