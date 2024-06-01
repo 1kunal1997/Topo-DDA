@@ -191,7 +191,11 @@ class DDAModelWrapper:
 
     def _flat_to_3d(self, x):
         """Converts flattened C++ parameters into a 3D parameters."""
-        return np.reshape(x, self._domain_shape, order="C")
+        # The 3D parameters are not actually row-major - the x and the z axes
+        # have been swapped in the format (for some reason). We have to
+        # transpose to undo this non-standard format.
+        temp_shape = list(reversed(self._domain_shape))
+        return np.reshape(x, temp_shape, order="C").T
 
     def objective(
         self,
@@ -246,7 +250,9 @@ class DDAModelWrapper:
     
     def getElectricField(self):
         """Returns the electric field for a given set of parameters."""
-        return self._model.getElectricField()
+        e = self._model.getElectricField()
+        e = e[::3]  # TODO: Fix format from the C++ module to not 3x duplicate.
+        return self._flat_to_3d(e)
 
     @parameters.setter
     def parameters(self, value):
