@@ -20,9 +20,9 @@
         0
     ],
     "wavelength": 542.0,
-    "evo_max_iteration": 400,
+    "evo_max_iteration": 100,
     "step_size": 0.01,
-    "base_path": "E:\\Calculations\\2024May27\\RampDownObj\\",
+    "base_path": "/home/sharkbait/Documents/code/dda_model/calculations/test",
     "penalty_type": "triangular",
     "penalty_configs": {
         "gaussian": {
@@ -92,5 +92,5 @@
     "plot_vectors": false,
     "plot_penalties": true,
     "plot_gradients_penalty": true,
-    "full_path": "E:\\Calculations\\2024May27\\RampDownObj\\HalfCylinder_eps0.01_it700_parabolicpenalty_expCoeff"
+    "full_path": "/home/sharkbait/Documents/code/dda_model/calculations/testVerify2HalfCylinder_it100_eps0.01_triangularPenalty_linearCoeff"
 }

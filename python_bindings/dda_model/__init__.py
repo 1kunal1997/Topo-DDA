@@ -70,7 +70,7 @@ class DDAModelWrapper:
             light_amplitude: The amplitude of the light.
             symmetry_axes: The (x,y) coordinates of the lines along which to
                 mirror the geometry, if the symmetry_method is "4fold"
-            symmetry_method: Either "4fold" or "none".
+            symmetry_method: Either "4fold" or "None".
             symmetry_is_periodic: If true, the structure is assumed to repeat
                 in a periodic way.
             integral_power: The objective function maximizes the Lp functional
@@ -102,9 +102,27 @@ class DDAModelWrapper:
         if len(symmetry_axes) != 2 and symmetry_method == "4fold":
             raise ValueError("If symmetry_method is 4fold, symmetry_axes must "
                             f"be 2-dimensional. Instead found {symmetry_axes}.")
+        valid_methods = ["4fold", "none"]
+        if symmetry_method not in valid_methods:
+            raise ValueError("Unsupported symmetry method "
+                             f"{self._symmetry_method}. Expected a method from "
+                             f"{valid_methods}.")
+        if symmetry_method == "4fold":
+            if num_pixels_xyz[0] % 2 != 0:
+                raise ValueError("For 4fold symmetry, num_x must be even.")
+            if num_pixels_xyz[1] % 2 != 0:
+                raise ValueError("For 4fold symmetry, num_y must be even.")
+        # Input checking is done, initialize the parameters.
+        self._domain_shape = num_pixels_xyz
+        self._parameter_shape = num_pixels_xyz[:2] # XY only.
+        if symmetry_method == "4fold":
+            self._parameter_shape = [
+                num_pixels_xyz[0] // 2, num_pixels_xyz[1] // 2
+            ]
+        self._symmetry_method = symmetry_method
         self._pixel_dimensions = num_pixels_xyz
         num_pixels_total = np.prod(self._pixel_dimensions)
-        num_x, num_y, num_z = num_pixels_xyz
+        num_x, num_y, num_z = self._domain_shape
         geometry = _generate_geometry(num_x, num_y, num_z)
         # Objective configuration.
         if not integral_xbounds:
@@ -147,7 +165,7 @@ class DDAModelWrapper:
         self._model = DDAModel(
             filter_beta_min, filter_beta_max, filter_ita, filter_method,
             filter_iterations, filter_radii, filter_enable,
-            symmetry_method, symmetry_axes, symmetry_is_periodic,
+            self._symmetry_method, symmetry_axes, symmetry_is_periodic,
             objective_name, objective_config,
             geometry, initial_parameter_values,
             num_x, num_y, num_z, num_pixels_total, 
@@ -158,6 +176,26 @@ class DDAModelWrapper:
             apc_method_name, pixel_size_nm,
             si, ci, sici_delta, verbose,
         )
+
+    def _flat_to_2d(self, x):
+        """Convert flattened parameters from C++ into 2D tensors.
+
+        Note: The C++ API expects row-major (C-order) inputs, so the flatten
+        and reshape commands must obey this format.
+        """
+        return np.reshape(x, self._parameter_shape, order="C")
+
+    def _2d_to_flat(self, x):
+        """Flatten 2D parameters into a format ready to pass to the C++."""
+        return x.flatten()
+
+    def _flat_to_3d(self, x):
+        """Converts flattened C++ parameters into a 3D parameters."""
+        # The 3D parameters are not actually row-major - the x and the z axes
+        # have been swapped in the format (for some reason). We have to
+        # transpose to undo this non-standard format.
+        temp_shape = list(reversed(self._domain_shape))
+        return np.reshape(x, temp_shape, order="C").T
 
     def objective(
         self,
@@ -180,24 +218,44 @@ class DDAModelWrapper:
         bgs_max_iter: int = 100_000,
         bgs_max_error: float = 1e-5,
         ):
-        return self._model.calculateGradients(
+        grads = self._model.calculateGradients(
             finite_difference_epsilon,
             current_objective_value,
             bgs_max_iter,
             bgs_max_error,
         )
+        return self._flat_to_2d(grads)
+
+    @property
+    def domain_shape(self):
+        """Returns the shape of the input geometry (the domain)."""
+        return self._domain_shape
+
+    @property
+    def parameters_shape(self):
+        """Returns the shape of the unique learnable parameters."""
+        return self._parameter_shape
 
     @property
     def parameters(self):
-        return self._model.getParameters()
-    
+        """Returns the unique, learnable parameters."""
+        p = self._model.getParameters()
+        return self._flat_to_2d(p)
+
     def allParameters(self):
-        return self._model.getDielectrics()
+        """Returns the reflected, extruded version of the parameters."""
+        p = self._model.getDielectrics()
+        p = p[::3]  # TODO: Fix format from the C++ module to not 3x duplicate.
+        return self._flat_to_3d(p)
     
     def getElectricField(self):
-        return self._model.getElectricField()
+        """Returns the electric field for a given set of parameters."""
+        e = self._model.getElectricField()
+        e = e[::3]  # TODO: Fix format from the C++ module to not 3x duplicate.
+        return self._flat_to_3d(e)
 
     @parameters.setter
     def parameters(self, value):
-        # TODO: Shape / type conversion from input array.
+        """Sets unique parameters. Sets a 2D array of shape [num_x, num_y]."""
+        value = self._2d_to_flat(value)
         self._model.setParameters(value)
