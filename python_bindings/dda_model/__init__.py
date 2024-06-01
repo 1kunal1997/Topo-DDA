@@ -107,18 +107,30 @@ class DDAModelWrapper:
             raise ValueError("Unsupported symmetry method "
                              f"{self._symmetry_method}. Expected a method from "
                              f"{valid_methods}.")
+        if symmetry_method == "4fold":
+            if num_pixels_xyz[0] % 2 != 0:
+                raise ValueError("For 4fold symmetry, num_x must be even.")
+            if num_pixels_xyz[1] % 2 != 0:
+                raise ValueError("For 4fold symmetry, num_y must be even.")
+        # Input checking is done, initialize the parameters.
+        self._domain_shape = num_pixels_xyz
+        self._parameter_shape = num_pixels_xyz[:2] # XY only.
+        if symmetry_method == "4fold":
+            self._parameter_shape = [
+                num_pixels_xyz[0] // 2, num_pixels_xyz[1] // 2
+            ]
         self._symmetry_method = symmetry_method
         self._pixel_dimensions = num_pixels_xyz
         num_pixels_total = np.prod(self._pixel_dimensions)
-        self._num_x, self._num_y, self._num_z = num_pixels_xyz
-        geometry = _generate_geometry(self._num_x, self._num_y, self._num_z)
+        num_x, num_y, num_z = self._domain_shape
+        geometry = _generate_geometry(num_x, num_y, num_z)
         # Objective configuration.
         if not integral_xbounds:
-            integral_xbounds = [0.0, float(self._num_x) - 1]
+            integral_xbounds = [0.0, float(num_x) - 1]
         if not integral_ybounds:
-            integral_ybounds = [0.0, float(self._num_y) - 1]
+            integral_ybounds = [0.0, float(num_y) - 1]
         if not integral_zbounds:
-            integral_zbounds = [0.0, float(self._num_z) - 1]
+            integral_zbounds = [0.0, float(num_z) - 1]
         objective_config = [integral_power]
         objective_config += integral_xbounds
         objective_config += integral_ybounds
@@ -135,9 +147,9 @@ class DDAModelWrapper:
         # TODO: Verify that this is the correct default behavior. Also check
         # that max_m and max_n should not default differently (e.g., to 2*l_m).
         if not apc_l_n:
-            apc_l_n = self._num_x
+            apc_l_n = num_x
         if not apc_l_m:
-            apc_l_m = self._num_y
+            apc_l_m = num_y
         # Cached integral values.
         sici_delta = 0.1
         sici_n = 1_000_000
@@ -156,7 +168,7 @@ class DDAModelWrapper:
             self._symmetry_method, symmetry_axes, symmetry_is_periodic,
             objective_name, objective_config,
             geometry, initial_parameter_values,
-            self._num_x, self._num_y, self._num_z, num_pixels_total, 
+            num_x, num_y, num_z, num_pixels_total, 
             light_direction, light_amplitude, light_polarization,
             light_wavelength_nm, dielectric_constants,
             background_refractive_index,
@@ -171,7 +183,7 @@ class DDAModelWrapper:
         Note: The C++ API expects row-major (C-order) inputs, so the flatten
         and reshape commands must obey this format.
         """
-        return np.reshape(x, [self._num_x, self._num_y], order="C")
+        return np.reshape(x, self._parameter_shape, order="C")
 
     def _2d_to_flat(self, x):
         """Flatten 2D parameters into a format ready to pass to the C++."""
@@ -179,7 +191,7 @@ class DDAModelWrapper:
 
     def _flat_to_3d(self, x):
         """Converts flattened C++ parameters into a 3D parameters."""
-        return np.reshape(x, [self._num_x, self._num_y, self._num_z], order="C")
+        return np.reshape(x, self._domain_shape, order="C")
 
     def objective(
         self,
@@ -209,6 +221,16 @@ class DDAModelWrapper:
             bgs_max_error,
         )
         return self._flat_to_2d(grads)
+
+    @property
+    def domain_shape(self):
+        """Returns the shape of the input geometry (the domain)."""
+        return self._domain_shape
+
+    @property
+    def parameters_shape(self):
+        """Returns the shape of the unique learnable parameters."""
+        return self._parameter_shape
 
     @property
     def parameters(self):

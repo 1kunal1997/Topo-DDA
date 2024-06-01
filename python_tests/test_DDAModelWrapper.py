@@ -42,8 +42,20 @@ def test_wrapper_objective():
 def test_geometry_generator():
     geometry_config = np.loadtxt("data/geometry.txt", dtype=int)
     geometry_ground_truth = geometry_config[4:]
-    geo_nx, geo_ny, geo_nz, geo_ntotal = geometry_config[:4]
+    geo_nx, geo_ny, geo_nz, _ = geometry_config[:4]
     generated_geometry = dda_model._generate_geometry(geo_nx, geo_ny, geo_nz)
     differences = (generated_geometry - geometry_ground_truth)**2
     assert differences.sum() == pytest.approx(0.0, 1e-6)
 
+def test_parameter_setter_2d():
+    model = _construct_test_model()
+    unique_parameters = model.parameters  # Calls the getter and 2D conversion.
+    assert len(unique_parameters.shape) == 2
+    assert list(unique_parameters.shape) == list(model.parameters_shape)
+    # Manipulate the parameters.
+    new_parameters = np.zeros_like(unique_parameters)
+    # Set the parameters.
+    model.parameters = new_parameters
+    # Re-get the parameters.
+    differences = (model.parameters - new_parameters)**2
+    assert differences.sum() == pytest.approx(0.0, 1e-6)
