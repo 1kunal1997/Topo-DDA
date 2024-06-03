@@ -149,7 +149,7 @@ evo_max_iter = parsed_json["evo_max_iteration"]
 penalty_config = parsed_json["penalty_configs"][penalty_type]
 coeff_config = parsed_json["coeff_configs"][coeff_type]
         
-full_path = base_path + f"Verify2HalfCylinder_it{evo_max_iter}_eps{step_size}_{penalty_type}Penalty_{coeff_type}Coeff"
+full_path = base_path + f"VerifyFilterApi_HalfCylinder_it{evo_max_iter}_eps{step_size}_{penalty_type}Penalty_{coeff_type}Coeff"
 print("Saving value to path: " + full_path)
 data_path = os.path.join(full_path, "Data")
 _createDirectories(data_path)

@@ -7,7 +7,6 @@ import itertools
 import os
 import sys
 
-
 def _plotStructures(it_start, it_end, num_skip, data_path, plot_path, fill_zeros=False):
     for i in range(it_start, it_end):
         if i % num_skip == 0:
@@ -17,7 +16,7 @@ def _plotStructures(it_start, it_end, num_skip, data_path, plot_path, fill_zeros
                 path = os.path.join(plot_path, "Structures")
             else:
                 path = os.path.join(plot_path, "SolidStructures")
-            plotting.plotGeometry(diel, path, i, fill_zeros=fill_zeros)
+            plotting.plotGeometry(diel, pixel_size, path, i, fill_zeros=fill_zeros)
             plt.close()
 
 
@@ -128,9 +127,9 @@ if plot_structures:
     _plotStructures(it_start, it_end, num_skip, data_path, plot_path, fill_zeros=True)
 if plot_solid_structures:
     _plotStructures(it_start, it_end, num_skip, data_path, plot_path, fill_zeros=False)
-# if plot_fields:
-_plotFields(it_start, it_end, num_skip, data_path, plot_path, parsed_json["EField_config"])
-# if plot_penalties:
-_plotPenalties(it_start, it_end, num_skip, data_path, plot_path)
-# if plot_gradients_penalty:
-_plotPenaltyGradients(it_start, it_end, num_skip, data_path, plot_path)
+if plot_fields:
+    _plotFields(it_start, it_end, num_skip, data_path, plot_path, parsed_json["EField_config"])
+if plot_penalties:
+    _plotPenalties(it_start, it_end, num_skip, data_path, plot_path)
+if plot_gradients_penalty:
+    _plotPenaltyGradients(it_start, it_end, num_skip, data_path, plot_path)

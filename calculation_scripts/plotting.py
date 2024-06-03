@@ -2,15 +2,16 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
+import matplotlib.ticker as ticker
 from scipy import ndimage
 import os
 
 def _plot_series(x, y, title, xlabel, ylabel, **kwargs):
     plt.figure()
     plt.plot(x, y, **kwargs)
-    plt.title(title, fontsize=22)
-    plt.ylabel(xlabel, fontsize=18)
-    plt.xlabel(ylabel, fontsize=18)
+    plt.title(title, fontsize=18)
+    plt.ylabel(xlabel, fontsize=14)
+    plt.xlabel(ylabel, fontsize=14)
 
 
 def plotObjectiveFunction(max_iterations, data_path, plot_path, **kwargs):
@@ -65,9 +66,9 @@ def plotPenaltyGradients(x, penalty_gradient_shape, data_path, plot_path, iterat
     plt.close()
 
 
-def plotGeometry(all_parameters, plot_path, iteration, angle1=225, angle2=45, fill_zeros=True):
+def plotGeometry(all_parameters, d, plot_path, iteration, angle1=225, angle2=45, fill_zeros=True):
     num_x, num_y, num_z = all_parameters.shape
-    X, Y, Z = np.indices((num_x+1, num_y+1, num_z+1))
+    X, Y, Z = d*np.indices((num_x+1, num_y+1, num_z+1))
     filled = np.ones((num_x, num_y, num_z))
     if not fill_zeros:
         filled = (all_parameters > 0.2)
@@ -79,10 +80,23 @@ def plotGeometry(all_parameters, plot_path, iteration, angle1=225, angle2=45, fi
     # Create a figure with a 3D projection, and plot the voxels.
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
-    ax.voxels(X, Y, Z, filled, facecolors=colors, edgecolor='white', linewidth=0.2)
-    # ax.grid(False)
+    ax.voxels(X, Y, Z, filled, facecolors=colors, edgecolors='white', linewidth=0.2)
+    ax.set_xlabel("x (nm)")
+    ax.set_ylabel("y (nm)")
+    ax.set_zlabel("z (nm)")
+
+    #TODO: Find a way to scale z-axis properly so that empty plotting region is neglected.
+    # Current method is hacky, and below are a couple ways that could work.
+    #plt.gca().set_zscale(num_z/num_x, 'linear')
+    #scale_z = num_z / num_x
+    #ticks_z = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x*scale_z))
+    #ax.zaxis.set_major_formatter(ticks_z)
+
+    ax.set_zlim(0, d*num_x)     # hacky because depends on value of num_x (what is num_x < num_z?)
+    ax.grid(False)
     ax.view_init(azim=angle1, elev=angle2)
-    fig.colorbar(colorset, shrink=0.9, aspect=10, cax=ax.inset_axes([0.95, 0.1, 0.05, 0.8]))
+    fig.colorbar(colorset, shrink=0.9, aspect=10, cax=ax.inset_axes([1.0, 0, 0.05, 0.8]))
+    fig.suptitle(f'Structure at iteration {iteration}')
     plt.savefig(os.path.join(plot_path, f"Structure{iteration}.png"), dpi=100)
 
 
@@ -98,8 +112,10 @@ def EField_slice(E_tot, plot_path, iteration, index=0, axis='x', cbar_limits=Non
     E_plot = ndimage.rotate(E_plot, 90)
     plt.figure()
     plt.imshow(E_plot, cmap='jet', interpolation='bilinear')
+    #TODO: add axes and confirm orientation of plots. currently, one axis looks flipped.
     plt.axis('off')
     if cbar_limits:
         plt.clim(cbar_limits[0], cbar_limits[1])
     plt.colorbar()
+    plt.title(f'Field Enhancement at {axis}={index}, iteration {iteration}')
     plt.savefig(os.path.join(plot_path, f"EField{iteration}_{axis}={index}.png"), dpi=100)
