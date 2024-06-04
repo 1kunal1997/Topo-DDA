@@ -20,20 +20,18 @@
         0
     ],
     "wavelength": 542.0,
-    "evo_max_iteration": 100,
-    "step_size": 0.01,
-    "base_path": "/home/sharkbait/Documents/code/dda_model/calculations/test",
-    "penalty_type": "triangular",
-    "penalty_configs": {
-        "gaussian": {
-            "sigma": 0.2,
-            "mu": 0.5
-        },
-        "triangular": {
-            "slope": 1.0
-        },
-        "parabolic": {}
+    "evo_max_iteration": 400,
+    "threshold_iteration": 100,
+    "filter_iteration": 100,
+    "filter_radii": {
+        "r1": 3,
+        "it1": 0,
+        "r2": 2,
+        "it2": 200
     },
+    "step_size": 0.01,
+    "filter_size": 3,
+    "base_path": "E:\\Calculations\\IHT+Filter\\2024June03\\",
     "coeff_type": "linear",
     "coeff_configs": {
         "constant": {
@@ -81,16 +79,13 @@
         "z_slice": 9
     },
     "it_start": 0,
-    "it_end": 400,
-    "num_skip": 5,
+    "it_end": 1000,
+    "num_skip": 1,
     "plot_structures": true,
     "plot_solid_structures": false,
     "plot_fields": true,
     "plot_z_field": true,
     "plot_y_field": false,
     "plot_x_field": false,
-    "plot_vectors": false,
-    "plot_penalties": true,
-    "plot_gradients_penalty": true,
     "full_path": "/home/sharkbait/Documents/code/dda_model/calculations/testVerify2HalfCylinder_it100_eps0.01_triangularPenalty_linearCoeff"
 }

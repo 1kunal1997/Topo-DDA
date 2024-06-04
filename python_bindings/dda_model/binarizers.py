@@ -1,36 +1,6 @@
 import numpy as np
 import math
-import matplotlib.pyplot as plt
-
-def parabolic(parameters, info_dict):
-    return parameters - np.square(parameters)
-
-def gradParabolic(parameters, info_dict):
-    return 1 - 2 * parameters
-
-def gaussian(parameters, info_dict):
-    sig = info_dict["sigma"]
-    mu = info_dict["mu"]
-    return sig*np.exp(-np.power((parameters - mu)/sig, 2)/2 + 0.5)
-
-def gradGaussian(parameters, info_dict):
-    sig = info_dict["sigma"]
-    mu = info_dict["mu"]
-    return -(parameters - mu) * gaussian(parameters, info_dict) / np.square(sig)
-
-def triangular(parameters, info_dict):
-    slope = info_dict["slope"]
-    result = np.array(parameters) * slope
-    indices = np.where(parameters > 0.5)
-    result[indices] = slope - result[indices]
-    return result
-
-def gradTriangular(parameters, info_dict):
-    slope = info_dict["slope"]
-    result = np.ones_like(parameters) * slope
-    indices = np.where(parameters > 0.5)
-    result[indices] *= -1
-    return result
+from scipy.signal import convolve2d
 
 def piecewise_update_absolute(iter, info_dict):
     iter1 = info_dict["iter1"] 
@@ -92,11 +62,27 @@ def linear_update(iter, info_dict):
     else:
         return coeff_min + (coeff_max - coeff_min) * iter / iter_end
 
-'''
-x_values = np.linspace(0, 1, 200)
-plt.figure()
-plt.plot(x_values, gradGaussian(x_values, 0.15, 0.5))
-plt.figure()
-plt.plot(x_values, gaussian(x_values, 0.15, 0.5))
-plt.show()
-'''
+def filter_radius_update(iter, info_dict):
+    r1 = info_dict["r1"]
+    it1 = info_dict["it1"]
+    r2 = info_dict["r2"]
+    it2 = info_dict["it2"]
+    if it1 <= iter < it2:
+        return r1
+    elif iter >= it2:
+        return r2
+    else:
+        return 1
+
+# return thresholded parameters using smooth Heaviside function.
+def smooth_thresholding(parameters, ita, beta):
+    result = ita * (math.exp(-beta * (1 - parameters / ita)) - (1 - parameters / ita) * math.exp(-beta))
+    indices = np.where(parameters > ita)
+    result[indices] = (1 - ita) * (1 - math.exp(-beta * (parameters[indices] - ita) / (1 - ita)) + (parameters[indices] - ita) / (1 - ita) * math.exp(-beta)) + ita
+    return result
+
+# return mean-filtered parameters using radius 'filter_size'.
+def mean_filter(parameters, filter_size):
+    filter = np.ones([filter_size, filter_size], dtype=float)
+    filter /= np.sum(filter)
+    return convolve2d(parameters, filter, mode="same", boundary="symm")

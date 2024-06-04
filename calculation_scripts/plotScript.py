@@ -3,7 +3,6 @@ import json
 from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
-import itertools
 import os
 import sys
 
@@ -44,23 +43,6 @@ def _plotFields(it_start, it_end, num_skip, data_path, plot_path, config):
             if plot_z_field:
                 plotting.EField_slice(E_total, os.path.join(plot_path, "E-Field_ZSlice"), i, index=z_slice, axis='z', cbar_limits=display_limits)
                 plt.close()
-
-
-def _plotPenalties(it_start, it_end, num_skip, data_path, plot_path):
-    x, penalty_shape=np.loadtxt(os.path.join(data_path, "Penalty_Shape.txt"), delimiter=',', unpack=True)
-    for i in range(it_start, it_end):
-        if i % num_skip == 0:
-            print(f'Plotting the {i}th Penalty Plot')
-            plotting.plotPenalties(x, penalty_shape, data_path, plot_path, i)
-            plt.close()
-
-def _plotPenaltyGradients(it_start, it_end, num_skip, data_path, plot_path):
-    x, penalty_gradient_shape=np.loadtxt(os.path.join(data_path, "PenaltyGradient_Shape.txt"), delimiter=',', unpack=True)
-    for i in range(it_start, it_end):
-        if i % num_skip == 0:
-            print(f'Plotting the {i}th Gradient Plot (from Penalty)')
-            plotting.plotPenaltyGradients(x, penalty_gradient_shape, data_path, plot_path, i)
-            plt.close()
     
 def _createDirectories(path):
     plot_dict = {
@@ -69,9 +51,6 @@ def _createDirectories(path):
             'E-Field_ZSlice': plot_z_field,
             'E-Field_YSlice': plot_y_field,
             'E-Field_XSlice': plot_x_field,
-            'E-Field_Vector': plot_vectors,
-            'Gradients_Penalty': plot_gradients_penalty,
-            'Penalties': plot_penalties
         }
 
     for directory, flag in plot_dict.items():
@@ -95,9 +74,6 @@ light_polarization = parsed_json["light_polarization"]
 geometry_shape = parsed_json["geometry_shape"]
 evo_max_iter = parsed_json["evo_max_iteration"]
 
-penalty_type = parsed_json["penalty_type"]
-penalty_config = parsed_json["penalty_configs"][penalty_type]
-
 # plotting flags
 plot_structures = parsed_json["plot_structures"]
 plot_solid_structures = parsed_json["plot_solid_structures"]
@@ -107,21 +83,14 @@ plot_fields = parsed_json["plot_fields"]             # umbrella flag for no E-Fi
 plot_z_field = parsed_json["plot_z_field"]
 plot_y_field = parsed_json["plot_y_field"]
 plot_x_field = parsed_json["plot_x_field"]
-plot_vectors = parsed_json["plot_vectors"]
-
-#other plotting stuff
-plot_gradients_penalty = parsed_json["plot_gradients_penalty"]
-plot_penalties = parsed_json["plot_penalties"]
 
 _createDirectories(plot_path)
 it_start = parsed_json["it_start"]
 it_end = min(parsed_json["it_end"], evo_max_iter)
 num_skip = parsed_json["num_skip"]
 
-plotting.plotStepSizes(evo_max_iter, data_path, plot_path)
 plotting.plotObjectiveFunction(evo_max_iter, data_path, full_path)
-plotting.plotPenaltyCoefficients(evo_max_iter, data_path, plot_path)
-plotting.plotAveragePenalty(evo_max_iter, data_path, plot_path)
+plotting.plotStepSizes(evo_max_iter, data_path, plot_path)
 
 if plot_structures:
     _plotStructures(it_start, it_end, num_skip, data_path, plot_path, fill_zeros=True)
@@ -129,7 +98,3 @@ if plot_solid_structures:
     _plotStructures(it_start, it_end, num_skip, data_path, plot_path, fill_zeros=False)
 if plot_fields:
     _plotFields(it_start, it_end, num_skip, data_path, plot_path, parsed_json["EField_config"])
-if plot_penalties:
-    _plotPenalties(it_start, it_end, num_skip, data_path, plot_path)
-if plot_gradients_penalty:
-    _plotPenaltyGradients(it_start, it_end, num_skip, data_path, plot_path)

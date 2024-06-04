@@ -27,45 +27,6 @@ def plotStepSizes(max_iterations, data_path, plot_path, **kwargs):
     _plot_series(iterations, stepsizes, "Step Size", "Step Size", "Iteration", **kwargs)
     plt.savefig(os.path.join(plot_path, "stepsizes.png"), bbox_inches='tight')
 
-
-def plotPenaltyCoefficients(max_iterations, data_path, plot_path, **kwargs):
-    coeffs=np.loadtxt(os.path.join(data_path, "Coeffs.txt"))
-    iterations = np.arange(max_iterations)
-    _plot_series(iterations, coeffs, "Penalty Weight", "Coefficient", "Iteration", **kwargs)
-    plt.savefig(os.path.join(plot_path, "Coefficients.png"), bbox_inches='tight')
-
-
-def plotAveragePenalty(max_iterations, data_path, plot_path, **kwargs):
-    penalties=np.loadtxt(os.path.join(data_path, "Average_Penalties.txt"))
-    iterations = np.arange(max_iterations)
-    _plot_series(iterations, penalties, "Average Penalty", "Penalty", "Iteration", **kwargs)
-    plt.savefig(os.path.join(plot_path, "average_penalty.png"), bbox_inches='tight')
-
-
-def plotPenalties(x, penalty_shape, data_path, plot_path, iteration):
-    params=np.load(os.path.join(data_path, "Parameters", f"Param{iteration}.npy"))
-    penalties = np.load(os.path.join(data_path, "Penalties", f"Penalty{iteration}.npy"))
-    plt.plot(x, penalty_shape)
-    plt.plot(params, penalties, 'o')
-    plt.title("Penalty Function")
-    plt.ylabel("Penalty")
-    plt.xlabel("Pixel Value")
-    plt.savefig(os.path.join(plot_path, "Penalties", f"penalty{iteration}.png"), bbox_inches='tight')
-    plt.close()
-
-
-def plotPenaltyGradients(x, penalty_gradient_shape, data_path, plot_path, iteration):
-    params=np.load(os.path.join(data_path, "Parameters", f"Param{iteration}.npy"))
-    gradients_penalty = np.load(os.path.join(data_path, "Gradient_Penalties", f"Gradient{iteration}.npy"))
-    plt.plot(x, penalty_gradient_shape)
-    plt.plot(params, gradients_penalty, 'o')
-    plt.title(f"Gradient of Penalty at Iteration {iteration}")
-    plt.ylabel("Gradient")
-    plt.xlabel("Pixel Value")
-    plt.savefig(os.path.join(plot_path, "Gradients_Penalty", f"penaltyGradient_{iteration}.png"), bbox_inches='tight')
-    plt.close()
-
-
 def plotGeometry(all_parameters, d, plot_path, iteration, angle1=225, angle2=45, fill_zeros=True):
     num_x, num_y, num_z = all_parameters.shape
     X, Y, Z = d*np.indices((num_x+1, num_y+1, num_z+1))
