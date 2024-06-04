@@ -20,9 +20,10 @@
         0
     ],
     "wavelength": 542.0,
-    "evo_max_iteration": 100,
+    "evo_max_iteration": 1000,
     "step_size": 0.01,
-    "base_path": "/home/sharkbait/Documents/code/dda_model/calculations/test",
+    "base_path": "/home/sharkbait/Documents/code/dda_model/calculations",
+    "init_path": "",
     "penalty_type": "triangular",
     "penalty_configs": {
         "gaussian": {
@@ -47,8 +48,8 @@
             "coeff_max": 1.0
         },
         "linear": {
-            "iter_start": 0,
-            "iter_end": 400,
+            "iter_start": 500,
+            "iter_end": 800,
             "coeff_min": 0.0,
             "coeff_max": 1.0
         },
@@ -81,7 +82,7 @@
         "z_slice": 9
     },
     "it_start": 0,
-    "it_end": 400,
+    "it_end": 1000,
     "num_skip": 5,
     "plot_structures": true,
     "plot_solid_structures": false,
@@ -92,5 +93,5 @@
     "plot_vectors": false,
     "plot_penalties": true,
     "plot_gradients_penalty": true,
-    "full_path": "/home/sharkbait/Documents/code/dda_model/calculations/testVerify2HalfCylinder_it100_eps0.01_triangularPenalty_linearCoeff"
+    "full_path": ""
 }

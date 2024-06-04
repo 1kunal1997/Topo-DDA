@@ -49,7 +49,7 @@ def plotPenalties(x, penalty_shape, data_path, plot_path, iteration):
     plt.title("Penalty Function")
     plt.ylabel("Penalty")
     plt.xlabel("Pixel Value")
-    plt.savefig(os.path.join(plot_path, "Penalties", f"penalty{iteration}.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(plot_path, "Penalties", f"penalty{str(iteration).zfill(5)}.png"), bbox_inches='tight')
     plt.close()
 
 
@@ -61,7 +61,7 @@ def plotPenaltyGradients(x, penalty_gradient_shape, data_path, plot_path, iterat
     plt.title(f"Gradient of Penalty at Iteration {iteration}")
     plt.ylabel("Gradient")
     plt.xlabel("Pixel Value")
-    plt.savefig(os.path.join(plot_path, "Gradients_Penalty", f"penaltyGradient_{iteration}.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(plot_path, "Gradients_Penalty", f"penaltyGradient_{str(iteration).zfill(5)}.png"), bbox_inches='tight')
     plt.close()
 
 
@@ -83,7 +83,7 @@ def plotGeometry(all_parameters, plot_path, iteration, angle1=225, angle2=45, fi
     # ax.grid(False)
     ax.view_init(azim=angle1, elev=angle2)
     fig.colorbar(colorset, shrink=0.9, aspect=10, cax=ax.inset_axes([0.95, 0.1, 0.05, 0.8]))
-    plt.savefig(os.path.join(plot_path, f"Structure{iteration}.png"), dpi=100)
+    plt.savefig(os.path.join(plot_path, f"Structure{str(iteration).zfill(5)}.png"), dpi=100)
 
 
 def EField_slice(E_tot, plot_path, iteration, index=0, axis='x', cbar_limits=None):
@@ -102,4 +102,4 @@ def EField_slice(E_tot, plot_path, iteration, index=0, axis='x', cbar_limits=Non
     if cbar_limits:
         plt.clim(cbar_limits[0], cbar_limits[1])
     plt.colorbar()
-    plt.savefig(os.path.join(plot_path, f"EField{iteration}_{axis}={index}.png"), dpi=100)
+    plt.savefig(os.path.join(plot_path, f"EField_{axis}={index}_{str(iteration).zfill(5)}.png"), dpi=100)

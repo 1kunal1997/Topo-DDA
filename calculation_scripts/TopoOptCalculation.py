@@ -129,7 +129,9 @@ pixel_size = parsed_json["pixel_size"]
 light_direction = parsed_json["light_direction"]
 light_polarization = parsed_json["light_polarization"]
 wavelength = parsed_json["wavelength"]
-initialization = np.loadtxt("initializations/halfcylinder.txt")
+# initialization = np.loadtxt("initializations/halfcylinder.txt")
+print(f"Using initialization: {parsed_json["init_path"]}")
+initialization = np.loadtxt(parsed_json["init_path"])
 #initialization += np.random.uniform(0, 10e-3, size=initialization.shape)
 dielectric_constants = [1.01 + 0j, 5.96282 + 3.80423e-7j]
 base_path = parsed_json["base_path"]
@@ -148,8 +150,9 @@ evo_max_iter = parsed_json["evo_max_iteration"]
 
 penalty_config = parsed_json["penalty_configs"][penalty_type]
 coeff_config = parsed_json["coeff_configs"][coeff_type]
-        
-full_path = base_path + f"Verify2HalfCylinder_it{evo_max_iter}_eps{step_size}_{penalty_type}Penalty_{coeff_type}Coeff"
+
+# full_path = os.path.join(base_path, parsed_json["run_name"])
+full_path = parsed_json["full_path"]
 print("Saving value to path: " + full_path)
 data_path = os.path.join(full_path, "Data")
 _createDirectories(data_path)
