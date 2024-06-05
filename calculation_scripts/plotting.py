@@ -27,6 +27,18 @@ def plotStepSizes(max_iterations, data_path, plot_path, **kwargs):
     _plot_series(iterations, stepsizes, "Step Size", "Step Size", "Iteration", **kwargs)
     plt.savefig(os.path.join(plot_path, "stepsizes.png"), bbox_inches='tight')
 
+def plotFilterRadii(max_iterations, data_path, plot_path, **kwargs):
+    filter_radii = np.loadtxt(os.path.join(data_path, "filter_radii.txt"))
+    iterations = np.arange(max_iterations)
+    _plot_series(iterations, filter_radii, "Filter Radii", "Radius", "Iteration", **kwargs)
+    plt.savefig(os.path.join(plot_path, "filter_radii.png"), bbox_inches='tight')
+
+def plotBetas(max_iterations, data_path, plot_path, **kwargs):
+    stepsizes = np.loadtxt(os.path.join(data_path, "betas.txt"))
+    iterations = np.arange(max_iterations)
+    _plot_series(iterations, stepsizes, "Beta Function", "Beta", "Iteration", **kwargs)
+    plt.savefig(os.path.join(plot_path, "betas.png"), bbox_inches='tight')
+
 def plotGeometry(all_parameters, d, plot_path, iteration, angle1=225, angle2=45, fill_zeros=True):
     num_x, num_y, num_z = all_parameters.shape
     X, Y, Z = d*np.indices((num_x+1, num_y+1, num_z+1))

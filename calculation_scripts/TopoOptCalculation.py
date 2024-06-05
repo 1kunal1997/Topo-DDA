@@ -28,9 +28,13 @@ def _saveObjective(all_obj, path):
     curr_path = os.path.join(path, "Obj.txt")
     np.savetxt(curr_path, all_obj, delimiter='\n')
 
-def _savePenaltyCoefficients(all_coeffs, path):
-    curr_path = os.path.join(path, "Coeffs.txt")
-    np.savetxt(curr_path, all_coeffs, delimiter='\n')
+def _saveBetas(all_betas, path):
+    curr_path = os.path.join(path, "betas.txt")
+    np.savetxt(curr_path, all_betas, delimiter='\n')
+
+def _saveFilterRadii(all_radii, path):
+    curr_path = os.path.join(path, "filter_radii.txt")
+    np.savetxt(curr_path, all_radii, delimiter='\n')
 
 def _saveCurrentStructure(all_parameters, path, iteration):
     curr_path = os.path.join(path, "Structures", f"Structure{iteration}.npy")
@@ -49,18 +53,18 @@ def _createDirectories(path):
     for directory in directories:
         Path(os.path.join(path, directory)).mkdir(parents=True, exist_ok=True)
 
-def _calculatePenaltyCoefficient(iteration, coeff_type):
-    match coeff_type:
+def _calculateBeta(iteration, beta_type):
+    match beta_type:
         case 'piecewise':
-            return binarizers.piecewise_update(iteration, coeff_config)
+            return binarizers.piecewise_update(iteration, beta_config)
         case 'piecewise_absolute':
-            return binarizers.piecewise_update_absolute(iteration, coeff_config)
+            return binarizers.piecewise_update_absolute(iteration, beta_config)
         case 'linear':
-            return binarizers.linear_update(iteration, coeff_config)
+            return binarizers.linear_update(iteration, beta_config)
         case 'exp':
-            return binarizers.exp_update(iteration, coeff_config)
+            return binarizers.exp_update(iteration, beta_config)
         case 'constant':
-            return coeff_config["coeff_const"]
+            return beta_config["beta_const"]
 
 def _saveStepSizes(all_step_sizes, path):
     curr_path = os.path.join(path, "stepsizes.txt")
@@ -86,18 +90,18 @@ base_path = parsed_json["base_path"]
 #stepArray = np.round(stepArray, 3)
 #print(stepArray)
 
-#coeffList = ['constant', 'linear', 'exp', 'piecewise', 'piecewise_absolute']
-coeff_type = parsed_json["coeff_type"]
+#betaList = ['constant', 'linear', 'exp', 'piecewise', 'piecewise_absolute']
+beta_type = parsed_json["beta_type"]
 
 step_size = parsed_json["step_size"]
-filter_size = parsed_json["filter_size"]
 filter_radii = parsed_json["filter_radii"]
 evo_max_iter = parsed_json["evo_max_iteration"]
 threshold_iter = parsed_json["threshold_iteration"]
 filter_iter = parsed_json["filter_iteration"]
-coeff_config = parsed_json["coeff_configs"][coeff_type]
+beta_config = parsed_json["beta_configs"][beta_type]
+ita = parsed_json["ita"]
         
-full_path = base_path + f"FilterFirst_HalfCylinder_it{evo_max_iter}_thres{threshold_iter}_eps{step_size}_filter{filter_size}"
+full_path = base_path + f"VerifyHalfCylinder_it{evo_max_iter}_eps{step_size}_thres{threshold_iter}_beta{beta_type}_filter{filter_iter}_r3"
 print("Saving value to path: " + full_path)
 data_path = os.path.join(full_path, "Data")
 _createDirectories(data_path)
@@ -106,7 +110,8 @@ model = _constructModel()
 optimizer = optimizers.AdamOptimizer()
 # step_size = 0.01 This works better
 all_objective_values = []
-all_coefficients = []
+all_threshold_betas = []
+all_filter_radii = []
 all_step_sizes = []
 
 # main iteration loop for gradient descent optimization
@@ -139,18 +144,24 @@ for iteration in range(evo_max_iter):
     step = step_size * gradients_final
     updated_parameters = np.clip(parameters + step, 0, 1)
 
+    # apply a filter every 'filter_iter' iterations
+    filter_size = binarizers.filter_radius_update(iteration, filter_radii)
+    all_filter_radii.append(filter_size)
+    if (iteration + 1) % filter_iter == 0:
+        updated_parameters = binarizers.mean_filter(updated_parameters, filter_size)
+
+    # apply a threshold every 'threshold_iter' iterations
+    beta = _calculateBeta(iteration, beta_type)
+    all_threshold_betas.append(beta)
     if (iteration + 1) % threshold_iter == 0:
-        filter = np.ones([filter_size, filter_size], dtype=float)
-        filter /= np.sum(filter)
-        # Apply the filter using convolve2d.
-        filtered_parameters = convolve2d(updated_parameters, filter, mode="same", boundary="symm")
-        thresholded_parameters = np.round(filtered_parameters)
-        updated_parameters = thresholded_parameters
+        updated_parameters = binarizers.smooth_thresholding(updated_parameters, ita, beta)
 
     model.parameters = updated_parameters
 
 _saveObjective(all_objective_values, data_path)
 _saveStepSizes(all_step_sizes, data_path)
+_saveBetas(all_threshold_betas, data_path)
+_saveFilterRadii(all_filter_radii, data_path)
 
 parsed_json["full_path"] = full_path
 

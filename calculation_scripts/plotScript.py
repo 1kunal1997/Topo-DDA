@@ -91,6 +91,8 @@ num_skip = parsed_json["num_skip"]
 
 plotting.plotObjectiveFunction(evo_max_iter, data_path, full_path)
 plotting.plotStepSizes(evo_max_iter, data_path, plot_path)
+plotting.plotBetas(evo_max_iter, data_path, plot_path)
+plotting.plotFilterRadii(evo_max_iter, data_path, plot_path)
 
 if plot_structures:
     _plotStructures(it_start, it_end, num_skip, data_path, plot_path, fill_zeros=True)

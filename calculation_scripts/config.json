@@ -21,53 +21,54 @@
     ],
     "wavelength": 542.0,
     "evo_max_iteration": 400,
-    "threshold_iteration": 100,
-    "filter_iteration": 100,
+    "threshold_iteration": 50,
+    "ita": 0.5,
+    "filter_iteration": 50,
     "filter_radii": {
         "r1": 3,
         "it1": 0,
-        "r2": 2,
+        "r2": 3,
         "it2": 200
     },
     "step_size": 0.01,
     "filter_size": 3,
-    "base_path": "E:\\Calculations\\IHT+Filter\\2024June03\\",
-    "coeff_type": "linear",
-    "coeff_configs": {
+    "base_path": "E:\\Calculations\\IHT+Filter\\2024June04\\",
+    "beta_type": "piecewise_absolute",
+    "beta_configs": {
         "constant": {
-            "coeff_const": 0.1
+            "beta_const": 0.1
         },
         "exp": {
             "base": 100,
             "iter_start": 0,
             "iter_end": 300,
-            "coeff_min": 0.0,
-            "coeff_max": 1.0
+            "beta_min": 0.0,
+            "beta_max": 1.0
         },
         "linear": {
             "iter_start": 0,
             "iter_end": 400,
-            "coeff_min": 0.0,
-            "coeff_max": 1.0
+            "beta_min": 0.0,
+            "beta_max": 1.0
         },
         "piecewise": {
             "frac1": 0.25,
             "frac2": 0.5,
             "frac3": 0.75,
             "iter_end": 400,
-            "coeff1": 0.0,
-            "coeff2": 0.4,
-            "coeff3": 0.7,
-            "coeff4": 1.0
+            "beta1": 0,
+            "beta2": 20,
+            "beta3": 50,
+            "beta4": 100
         },
         "piecewise_absolute": {
-            "iter1": 200,
-            "iter2": 280,
-            "iter3": 320,
-            "coeff1": 0.0,
-            "coeff2": 0.5,
-            "coeff3": 5,
-            "coeff4": 2.5
+            "iter1": 100,
+            "iter2": 200,
+            "iter3": 300,
+            "beta1": 0,
+            "beta2": 20,
+            "beta3": 50,
+            "beta4": 100
         }
     },
     "EField_config": {
@@ -79,13 +80,13 @@
         "z_slice": 9
     },
     "it_start": 0,
-    "it_end": 1000,
-    "num_skip": 1,
+    "it_end": 400,
+    "num_skip": 10,
     "plot_structures": true,
     "plot_solid_structures": false,
     "plot_fields": true,
     "plot_z_field": true,
     "plot_y_field": false,
     "plot_x_field": false,
-    "full_path": "/home/sharkbait/Documents/code/dda_model/calculations/testVerify2HalfCylinder_it100_eps0.01_triangularPenalty_linearCoeff"
+    "full_path": "/home/sharkbait/Documents/code/dda_model/calculations/testVerify2HalfCylinder_it100_eps0.01_triangularPenalty_linearbeta"
 }
