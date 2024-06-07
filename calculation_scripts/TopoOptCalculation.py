@@ -48,8 +48,12 @@ def _saveAllParams(params, path, iteration):
     curr_path = os.path.join(path, "Parameters", f"Param{iteration}.npy")
     np.save(curr_path, params)
 
+def _saveParamsBeforeThreshold(params, path, iteration):
+    curr_path = os.path.join(path, "Parameters_Before_Threshold", f"Param{iteration}.npy")
+    np.save(curr_path, params)
+
 def _createDirectories(path):
-    directories = ['Structures', 'Parameters', 'Penalties', 'Gradient_Penalties', 'E-Fields']
+    directories = ['Structures', 'Parameters', 'Parameters_Before_Threshold', 'E-Fields']
     for directory in directories:
         Path(os.path.join(path, directory)).mkdir(parents=True, exist_ok=True)
 
@@ -70,6 +74,9 @@ def _saveStepSizes(all_step_sizes, path):
     curr_path = os.path.join(path, "stepsizes.txt")
     np.savetxt(curr_path, all_step_sizes, delimiter='\n')
 
+def closed_range(start, stop):
+    return range(start, stop + 1)
+
 # CODE STARTS HERE!!!
 json_file = sys.argv[1]
 with open(json_file) as user_file:
@@ -81,9 +88,13 @@ pixel_size = parsed_json["pixel_size"]
 light_direction = parsed_json["light_direction"]
 light_polarization = parsed_json["light_polarization"]
 wavelength = parsed_json["wavelength"]
-initialization = np.loadtxt("initializations/halfcylinder.txt")
+#initialization = np.loadtxt("initializations/halfcylinder.txt")
+initialization = np.loadtxt(parsed_json["init_path"])
 #initialization += np.random.uniform(0, 10e-3, size=initialization.shape)
-dielectric_constants = [1.01 + 0j, 5.96282 + 3.80423e-7j]
+diel_ext = parsed_json["diel_ext"]
+diel_mat = parsed_json["diel_mat"]
+dielectric_constants = [diel_ext[0] + diel_ext[1]*1j, diel_mat[0], diel_mat[1]*1j]
+#dielectric_constants = [1.01 + 0j, 5.96282 + 3.80423e-7j]
 base_path = parsed_json["base_path"]
 
 #stepArray = np.logspace(-2, 0, 20)
@@ -98,10 +109,11 @@ filter_radii = parsed_json["filter_radii"]
 evo_max_iter = parsed_json["evo_max_iteration"]
 threshold_iter = parsed_json["threshold_iteration"]
 filter_iter = parsed_json["filter_iteration"]
+step_iter = parsed_json["step_iteration"]
 beta_config = parsed_json["beta_configs"][beta_type]
 ita = parsed_json["ita"]
         
-full_path = base_path + f"VerifyHalfCylinder_it{evo_max_iter}_eps{step_size}_thres{threshold_iter}_beta{beta_type}_filter{filter_iter}_r3"
+full_path = base_path + f"PlotThresholding_HalfCylinder_it{evo_max_iter}_step{step_size}_stepiter{step_iter}_thresiter{threshold_iter}_beta{beta_type}_0_10_20_50_filteriter{filter_iter}_r3"
 print("Saving value to path: " + full_path)
 data_path = os.path.join(full_path, "Data")
 _createDirectories(data_path)
@@ -114,49 +126,68 @@ all_threshold_betas = []
 all_filter_radii = []
 all_step_sizes = []
 
+# Calculate objective value of initialization and save data as iteration 0
+objective_value = model.objective()
+parameters = model.parameters
+print(f"Objective value of initialization is: {objective_value}")
+all_objective_values.append(objective_value)
+_saveCurrentStructure(model.allParameters(), data_path, 0)
+_saveCurrentEField(model.getElectricField(), data_path, 0)
+_saveAllParams(model.parameters, data_path, 0)
+
+'''
+ORDER OF OPERATIONS:
+1) calculate gradient of current structure
+2) run optimizer on gradients
+3) if needed, update step size
+4) update parameters by taking step with gradients
+5) clip to [0,1]
+6) if needed, filter the updated parameters
+7) if needed, threshold the updated parameters
+8) set model parameters
+9) calculate objective value of updated structure
+10) save all data
+'''
+
 # main iteration loop for gradient descent optimization
-for iteration in range(evo_max_iter):
+for iteration in closed_range(1, evo_max_iter):
     print(f"{'-' * 40}STARTING ITERATION {iteration} {'-' * 40}")
 
-    objective_value = model.objective()
-    print("Objective Value is: " + str(objective_value))
-    all_objective_values.append(objective_value) 
-    obj_gradients = model.gradients(objective_value)
-
-    # These are only used for plotting, can be reproduced from 'parameters'
-    all_parameters = model.allParameters()
-    _saveCurrentStructure(all_parameters, data_path, iteration)
-    electric_field = model.getElectricField()
-    _saveCurrentEField(electric_field, data_path, iteration)
-
-    parameters = model.parameters
-    _saveAllParams(parameters, data_path, iteration)  
-
-    gradients = obj_gradients
+    gradients = model.gradients(objective_value)
     gradients_final = optimizer(gradients)
     
-    # uncomment if you want a variable step size
-    '''
-    if (iteration+1) % 100 == 0:
+    # update step size every 'step_iter' iterations
+    if iteration % step_iter == 0:
         step_size /= 2
-    '''
     all_step_sizes.append(step_size)
     step = step_size * gradients_final
-    updated_parameters = np.clip(parameters + step, 0, 1)
+    updated_parameters = parameters + step
+    updated_parameters = np.clip(updated_parameters, 0, 1)
 
     # apply a filter every 'filter_iter' iterations
     filter_size = binarizers.filter_radius_update(iteration, filter_radii)
     all_filter_radii.append(filter_size)
-    if (iteration + 1) % filter_iter == 0:
+    if iteration % filter_iter == 0:
         updated_parameters = binarizers.mean_filter(updated_parameters, filter_size)
 
     # apply a threshold every 'threshold_iter' iterations
     beta = _calculateBeta(iteration, beta_type)
     all_threshold_betas.append(beta)
-    if (iteration + 1) % threshold_iter == 0:
+    if iteration % threshold_iter == 0:
+        _saveParamsBeforeThreshold(updated_parameters, data_path, iteration)
         updated_parameters = binarizers.smooth_thresholding(updated_parameters, ita, beta)
 
     model.parameters = updated_parameters
+
+    objective_value = model.objective()
+    parameters = model.parameters
+    print(f"Objective value of structure {iteration} is: {objective_value}")
+
+    # save obj, updated structure, E-Field, and updated parameters 
+    all_objective_values.append(objective_value)
+    _saveCurrentStructure(model.allParameters(), data_path, iteration)
+    _saveCurrentEField(model.getElectricField(), data_path, iteration)
+    _saveAllParams(parameters, data_path, iteration) 
 
 _saveObjective(all_objective_values, data_path)
 _saveStepSizes(all_step_sizes, data_path)

@@ -6,8 +6,11 @@ import numpy as np
 import os
 import sys
 
+def closed_range(start, stop):
+    return range(start, stop + 1)
+
 def _plotStructures(it_start, it_end, num_skip, data_path, plot_path, fill_zeros=False):
-    for i in range(it_start, it_end):
+    for i in closed_range(it_start, it_end):
         if i % num_skip == 0:
             print(f'Plotting the {i}th structure')
             diel=np.load(os.path.join(data_path, "Structures", f"Structure{i}.npy"))
@@ -27,7 +30,7 @@ def _plotFields(it_start, it_end, num_skip, data_path, plot_path, config):
     x_slice = config["x_slice"]
     y_slice = config["y_slice"]
     z_slice = config["z_slice"]
-    for i in range(it_start, it_end):
+    for i in closed_range(it_start, it_end):
         if i % num_skip == 0:
             print(f'Plotting the {i}th E-Field')
             E_total=np.load(os.path.join(data_path, "E-Fields", f"E-Field{i}.npy"))
@@ -43,6 +46,12 @@ def _plotFields(it_start, it_end, num_skip, data_path, plot_path, config):
             if plot_z_field:
                 plotting.EField_slice(E_total, os.path.join(plot_path, "E-Field_ZSlice"), i, index=z_slice, axis='z', cbar_limits=display_limits)
                 plt.close()
+
+def _plotThresholdedParameters(data_path, plot_path):
+    beta_values = np.loadtxt(os.path.join(data_path, "betas.txt"))
+    for i in range(threshold_iter, evo_max_iter+1, threshold_iter):
+        beta = beta_values[i-1]
+        plotting.plotThresholds(i, ita, beta, data_path, plot_path)
     
 def _createDirectories(path):
     plot_dict = {
@@ -51,6 +60,7 @@ def _createDirectories(path):
             'E-Field_ZSlice': plot_z_field,
             'E-Field_YSlice': plot_y_field,
             'E-Field_XSlice': plot_x_field,
+            'Thresholded_Parameters': plot_thresholds
         }
 
     for directory, flag in plot_dict.items():
@@ -73,10 +83,13 @@ light_direction = parsed_json["light_direction"]
 light_polarization = parsed_json["light_polarization"]
 geometry_shape = parsed_json["geometry_shape"]
 evo_max_iter = parsed_json["evo_max_iteration"]
+threshold_iter = parsed_json["threshold_iteration"]
+ita = parsed_json["ita"]
 
 # plotting flags
 plot_structures = parsed_json["plot_structures"]
 plot_solid_structures = parsed_json["plot_solid_structures"]
+plot_thresholds = parsed_json["plot_thresholds"]
 plot_fields = parsed_json["plot_fields"]             # umbrella flag for no E-Field plots at all
 
 # Specific E-field plot flags
@@ -100,3 +113,5 @@ if plot_solid_structures:
     _plotStructures(it_start, it_end, num_skip, data_path, plot_path, fill_zeros=False)
 if plot_fields:
     _plotFields(it_start, it_end, num_skip, data_path, plot_path, parsed_json["EField_config"])
+if plot_thresholds:
+    _plotThresholdedParameters(data_path, plot_path)
