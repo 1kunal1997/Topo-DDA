@@ -182,18 +182,33 @@ def perturb_designs(designs_list, num_offspring, p):
         output_list.append(perturbed_params)
     return output_list
 
+def dedupe_designs(designs_list):
+    # Remove identical designs. This may or may not help optimization.
+    unique_designs = []
+    for design in designs_list:
+        found_dupe = False
+        for unique_design in unique_designs:
+            if np.sum((unique_design - design)**2) < 10e-6:
+                found_dupe = True
+                break
+        if not found_dupe:
+            unique_designs.append(design)
+    return unique_designs
+
 def prune_designs(designs_list, model, num_population, remove_islands=False, max_island_size=1):
-    # Note: the max_island_size parameter is untested.
     # Kill all children except the top num_population children.
     def padded_morph_op(x, operation):
         # operation: one of ndimage.binary_opening, binary_closing, etc.
-        padded = np.pad(x, 1, mode='edge')
-        output = operation(padded, iterations=max_island_size)
-        return output.astype(float)[1:-1,1:-1]
+        n = max_island_size
+        padded = np.pad(x, n, mode='edge')
+        output = operation(padded, iterations=n)
+        return output.astype(float)[n:-n,n:-n]
     opening = lambda x: padded_morph_op(x, ndimage.binary_opening)
     closing = lambda x: padded_morph_op(x, ndimage.binary_closing)
 
     evaluated_designs = []
+    # This can actually hurt quality but is good for exploration.
+    # designs_list = dedupe_designs(designs_list)
     for design in designs_list:
         if remove_islands:
             design = closing(opening(design)).astype(float)
@@ -229,7 +244,10 @@ for iteration in range(evo_max_iter):
     designs.extend(new_designs)  # Include the old designs in the population.
     remove_islands = (iteration%10 == 0)
     designs, objectives = prune_designs(
-        designs, model, num_population, remove_islands=remove_islands)
+        designs, model, num_population,
+        remove_islands=remove_islands,
+        max_island_size=1,
+    )
 
     # Plot the best one.
     all_objective_values.append(max(objectives))
