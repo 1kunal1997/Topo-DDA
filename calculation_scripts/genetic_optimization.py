@@ -12,6 +12,7 @@ import sys
 from scipy.signal import convolve2d
 from scipy import ndimage
 
+import matplotlib.pyplot as plt
 import plotting
 
 
@@ -181,10 +182,16 @@ def perturb_designs(designs_list, num_offspring, p):
         output_list.append(perturbed_params)
     return output_list
 
-def prune_designs(designs_list, model, num_population, remove_islands=False):
+def prune_designs(designs_list, model, num_population, remove_islands=False, max_island_size=1):
+    # Note: the max_island_size parameter is untested.
     # Kill all children except the top num_population children.
-    opening = lambda x: ndimage.binary_opening(np.pad(x, 1, mode='edge')).astype(float)[1:-1,1:-1]
-    closing = lambda x: ndimage.binary_closing(np.pad(x, 1, mode='edge')).astype(float)[1:-1,1:-1]
+    def padded_morph_op(x, operation):
+        # operation: one of ndimage.binary_opening, binary_closing, etc.
+        padded = np.pad(x, 1, mode='edge')
+        output = operation(padded, iterations=max_island_size)
+        return output.astype(float)[1:-1,1:-1]
+    opening = lambda x: padded_morph_op(x, ndimage.binary_opening)
+    closing = lambda x: padded_morph_op(x, ndimage.binary_closing)
 
     evaluated_designs = []
     for design in designs_list:
@@ -208,7 +215,14 @@ evo_max_iter = 100
 
 initial_design = model.parameters
 designs = [initial_design]
-plotting.plotGeometry(model.allParameters(), pixel_size, plot_path, 0)
+
+# Plot the initialization (and save it, to not plot every structure update).
+last_design_plotted = initial_design
+num_plotted = 0
+plotting.plotGeometry(model.allParameters(), pixel_size, plot_path, num_plotted)
+num_plotted += 1
+
+# Perform the optimization loop.
 for iteration in range(evo_max_iter):
     print(f"{'-' * 40}STARTING ITERATION {iteration} {'-' * 40}")
     new_designs = perturb_designs(designs, num_offspring, flip_prob)
@@ -223,15 +237,20 @@ for iteration in range(evo_max_iter):
     print("Objective values:")
     for i, (v, d) in enumerate(zip(objectives, designs)):
         print(f"\t Child {i}, {v:.4f}")
-    print("Best design:")
-    print(designs[0])
-    print("Second best design:")
-    print(designs[1])
-    print("\n")
+    print("")
 
     # Hack to plot the best design.
-    model.parameters = designs[0]
-    plotting.plotGeometry(model.allParameters(), pixel_size, plot_path, iteration+1)
-    # plotGeometry(all_parameters, d, plot_path, iteration, angle1=225, angle2=45, fill_zeros=True):
+    should_skip_plot = (np.sum((last_design_plotted - designs[0])**2) < 10e-6)
+    if not should_skip_plot:
+        # This plot differs from the previous one.
+        model.parameters = designs[0]
+        plotting.plotGeometry(model.allParameters(), pixel_size, plot_path, num_plotted)
+        # Hacky way to re-save the plot but with a new title.
+        plt.suptitle(f'Iteration {iteration+1}, Obj={max(objectives):.4f}')
+        plt.savefig(os.path.join(plot_path, f"Structure{num_plotted}.png"), dpi=100)
+        plt.close()
+        np.save(os.path.join(plot_path, f"design_{num_plotted}.npy"), designs[0])
+        num_plotted += 1
+        last_design_plotted = designs[0]
 
 print(all_objective_values)
