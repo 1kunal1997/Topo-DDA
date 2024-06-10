@@ -224,7 +224,8 @@ def prune_designs(designs_list, model, num_population, remove_islands=False, max
 
 num_offspring = 100
 num_population = 10
-flip_prob = 0.1
+flip_prob = 0.05
+filter_cadence = 20  # Design constraints are enforced every "cadence" iters.
 
 evo_max_iter = 100
 
@@ -242,7 +243,7 @@ for iteration in range(evo_max_iter):
     print(f"{'-' * 40}STARTING ITERATION {iteration} {'-' * 40}")
     new_designs = perturb_designs(designs, num_offspring, flip_prob)
     designs.extend(new_designs)  # Include the old designs in the population.
-    remove_islands = (iteration%10 == 0)
+    remove_islands = (iteration%filter_cadence == 0)
     designs, objectives = prune_designs(
         designs, model, num_population,
         remove_islands=remove_islands,
@@ -272,3 +273,14 @@ for iteration in range(evo_max_iter):
         last_design_plotted = designs[0]
 
 print(all_objective_values)
+
+# Print out all the final designs, just to see what they look like.
+for idx, (design, objective) in enumerate(zip(designs, objectives)):
+    model.parameters = design
+    plotting.plotGeometry(model.allParameters(), pixel_size, plot_path, num_plotted)
+    # Hacky way to re-save the plot but with a new title.
+    plt.suptitle(f'Final Design #{idx+1}, Obj={objective:.4f}')
+    plt.savefig(os.path.join(plot_path, f"Structure{num_plotted}.png"), dpi=100)
+    plt.close()
+    np.save(os.path.join(plot_path, f"final_design_{num_plotted}.npy"), designs[0])
+    num_plotted += 1
