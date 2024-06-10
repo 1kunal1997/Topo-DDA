@@ -181,10 +181,15 @@ def perturb_designs(designs_list, num_offspring, p):
         output_list.append(perturbed_params)
     return output_list
 
-def prune_designs(designs_list, model, num_population):
+def prune_designs(designs_list, model, num_population, remove_islands=False):
     # Kill all children except the top num_population children.
+    opening = lambda x: ndimage.binary_opening(np.pad(x, 1, mode='edge')).astype(float)[1:-1,1:-1]
+    closing = lambda x: ndimage.binary_closing(np.pad(x, 1, mode='edge')).astype(float)[1:-1,1:-1]
+
     evaluated_designs = []
     for design in designs_list:
+        if remove_islands:
+            design = closing(opening(design)).astype(float)
         model.parameters = design
         objective_value = model.objective()
         evaluated_designs.append((objective_value, design))
@@ -208,14 +213,9 @@ for iteration in range(evo_max_iter):
     print(f"{'-' * 40}STARTING ITERATION {iteration} {'-' * 40}")
     new_designs = perturb_designs(designs, num_offspring, flip_prob)
     designs.extend(new_designs)  # Include the old designs in the population.
-    designs, objectives = prune_designs(designs, model, num_population)
-
-    # Every so often, delete all of the islands in the design.
-    if iteration % 10 == 0:
-        for i, design in enumerate(designs):
-            d = ndimage.binary_opening(design)
-            d = ndimage.binary_closing(d)
-            designs[i] = d.astype(float)
+    remove_islands = (iteration%10 == 0)
+    designs, objectives = prune_designs(
+        designs, model, num_population, remove_islands=remove_islands)
 
     # Plot the best one.
     all_objective_values.append(max(objectives))
