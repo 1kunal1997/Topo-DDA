@@ -229,14 +229,32 @@ filter_cadence = 20  # Design constraints are enforced every "cadence" iters.
 
 evo_max_iter = 101
 
+
+'''
 initial_design = model.parameters
 designs = [initial_design]
+'''
 
-# Plot the initialization (and save it, to not plot every structure update).
-last_design_plotted = initial_design
+# Generate random initializations as the initial population.
+parameter_shape = [11, 11]
+
+designs = []
+for _ in range(num_population):
+    init_successful = False
+    while not init_successful:
+        X = np.random.choice([0, 1], size=parameter_shape, p=[0.95, 0.05])
+        # Apply a (random) dilation to the initialization.
+        n_iters = np.random.choice([0, 1, 2])
+        X = ndimage.binary_dilation(X, iterations=n_iters).astype(float)
+        if X.sum() <= 10e-6:
+            continue
+        if np.sum((X - np.ones_like(X))**2) <= 10e-6:
+            continue
+        init_successful = True
+        designs.append(X)
+
+last_design_plotted = 0
 num_plotted = 0
-plotting.plotGeometry(model.allParameters(), pixel_size, plot_path, num_plotted)
-num_plotted += 1
 
 # Perform the optimization loop.
 for iteration in range(evo_max_iter):
