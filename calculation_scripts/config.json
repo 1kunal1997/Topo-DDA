@@ -32,8 +32,8 @@
     },
     "step_size": 0.01,
     "step_iteration": 100,
-    "base_path": "E:\\Calculations\\IHT+Filter\\2024June06\\",
-    "init_path": "initializations\\halfcylinder.txt",
+    "base_path": "/home/sharkbait/Documents/code/dda_model/calculations",
+    "init_path": "initializations/halfcylinder.txt",
     "diel_ext": [1.01, 0], 
     "diel_mat": [5.96282, 3.80423e-7],
     "beta_type": "piecewise_absolute",
@@ -92,5 +92,6 @@
     "plot_z_field": true,
     "plot_y_field": false,
     "plot_x_field": false,
-    "full_path": "/home/sharkbait/Documents/code/dda_model/calculations/testVerify2HalfCylinder_it100_eps0.01_triangularPenalty_linearbeta"
+    "full_path": "",
+    "run_name": "genetic_6"
 }

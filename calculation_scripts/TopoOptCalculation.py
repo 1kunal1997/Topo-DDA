@@ -112,7 +112,7 @@ filter_iter = parsed_json["filter_iteration"]
 step_iter = parsed_json["step_iteration"]
 beta_config = parsed_json["beta_configs"][beta_type]
 ita = parsed_json["ita"]
-        
+
 full_path = base_path + f"PlotThresholding_HalfCylinder_it{evo_max_iter}_step{step_size}_stepiter{step_iter}_thresiter{threshold_iter}_beta{beta_type}_0_10_20_50_filteriter{filter_iter}_r3"
 print("Saving value to path: " + full_path)
 data_path = os.path.join(full_path, "Data")
