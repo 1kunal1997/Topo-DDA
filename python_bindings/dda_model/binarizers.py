@@ -1,41 +1,50 @@
 import numpy as np
 import math
 from scipy.signal import convolve2d
+import matplotlib.pyplot as plt
 
 def piecewise_update_absolute(iter, info_dict):
     iter1 = info_dict["iter1"] 
     iter2 = info_dict["iter2"] 
     iter3 = info_dict["iter3"]
+    iter4 = info_dict["iter4"]
     beta1 = info_dict["beta1"]
     beta2 = info_dict["beta2"] 
     beta3 = info_dict["beta3"]
     beta4 = info_dict["beta4"]
-    if iter <= iter1:
+    beta5 = info_dict["beta5"]
+    if iter < iter1:
         return beta1
-    elif iter1 < iter <= iter2:
+    elif iter1 <= iter < iter2:
         return beta2
-    elif iter2 < iter <= iter3:
+    elif iter2 <= iter < iter3:
         return beta3
-    else:
+    elif iter3 <= iter < iter4:
         return beta4
+    else:
+        return beta5
 
 def piecewise_update(iter, info_dict):
     frac1 = info_dict["frac1"] 
     frac2 = info_dict["frac2"] 
     frac3 = info_dict["frac3"]
+    frac4 = info_dict["frac4"]
     iter_end = info_dict["iter_end"]
     beta1 = info_dict["beta1"]
     beta2 = info_dict["beta2"] 
     beta3 = info_dict["beta3"]
     beta4 = info_dict["beta4"]
-    if iter <= frac1*iter_end:
+    beta5 = info_dict["beta5"]
+    if iter < frac1*iter_end:
         return beta1
-    elif frac1*iter_end < iter <= frac2*iter_end:
+    elif frac1*iter_end <= iter < frac2*iter_end:
         return beta2
-    elif frac2*iter_end < iter <= frac3*iter_end:
+    elif frac2*iter_end <= iter < frac3*iter_end:
         return beta3
-    else:
+    elif frac3*iter_end <= iter < frac4*iter_end:
         return beta4
+    else:
+        return beta5
     
 def exp_update(iter, info_dict):
     base = info_dict["base"]
@@ -86,3 +95,16 @@ def mean_filter(parameters, filter_size):
     filter = np.ones([filter_size, filter_size], dtype=float)
     filter /= np.sum(filter)
     return convolve2d(parameters, filter, mode="same", boundary="symm")
+
+'''
+x_values = np.linspace(0, 1, 200)
+plt.figure()
+for i in [0, 3, 5, 10, 100]:
+    threshold_func = smooth_thresholding(x_values, 0.5, i)
+    plt.plot(x_values, threshold_func, label=f'$\\beta$={i}')
+plt.legend(loc='lower right')
+plt.title('Threshold Function')
+plt.xlabel('Parameter')
+plt.ylabel('Thresholded Parameter')
+plt.show()
+'''

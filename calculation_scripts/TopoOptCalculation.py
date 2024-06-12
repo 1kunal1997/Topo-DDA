@@ -113,7 +113,8 @@ step_iter = parsed_json["step_iteration"]
 beta_config = parsed_json["beta_configs"][beta_type]
 ita = parsed_json["ita"]
         
-full_path = base_path + f"PlotThresholding_HalfCylinder_it{evo_max_iter}_step{step_size}_stepiter{step_iter}_thresiter{threshold_iter}_beta{beta_type}_0_10_20_50_filteriter{filter_iter}_r3"
+full_path = parsed_json["full_path"]
+#full_path = base_path + f"HalfCylinder_it{evo_max_iter}_step{step_size}_stepiter{step_iter}_thresiter{threshold_iter}_beta{beta_type}_0_3_5_10_100_filteriter{filter_iter}_r3"
 print("Saving value to path: " + full_path)
 data_path = os.path.join(full_path, "Data")
 _createDirectories(data_path)

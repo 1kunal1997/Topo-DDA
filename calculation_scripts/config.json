@@ -20,10 +20,10 @@
         0
     ],
     "wavelength": 542.0,
-    "evo_max_iteration": 400,
-    "threshold_iteration": 50,
+    "evo_max_iteration": 1000,
+    "threshold_iteration": 100,
     "ita": 0.5,
-    "filter_iteration": 50,
+    "filter_iteration": 100,
     "filter_radii": {
         "r1": 3,
         "it1": 0,
@@ -31,8 +31,8 @@
         "it2": 200
     },
     "step_size": 0.01,
-    "step_iteration": 100,
-    "base_path": "E:\\Calculations\\IHT+Filter\\2024June06\\",
+    "step_iteration": 1001,
+    "base_path": "E:\\Calculations\\IHT+Filter\\2024June07\\RandomInitUniform_it1000_step0.01constant_thresiter100_0_3_5_10_100_filteriter100_r3\\",
     "init_path": "initializations\\halfcylinder.txt",
     "diel_ext": [1.01, 0], 
     "diel_mat": [5.96282, 3.80423e-7],
@@ -58,20 +58,24 @@
             "frac1": 0.25,
             "frac2": 0.5,
             "frac3": 0.75,
+            "frac4": 0.8,
             "iter_end": 400,
             "beta1": 0,
-            "beta2": 10,
-            "beta3": 20,
-            "beta4": 50
+            "beta2": 3,
+            "beta3": 5,
+            "beta4": 20,
+            "beta5": 100
         },
         "piecewise_absolute": {
-            "iter1": 100,
-            "iter2": 200,
-            "iter3": 300,
+            "iter1": 200,
+            "iter2": 400,
+            "iter3": 600,
+            "iter4": 800,
             "beta1": 0,
-            "beta2": 10,
-            "beta3": 20,
-            "beta4": 50
+            "beta2": 3,
+            "beta3": 5,
+            "beta4": 10,
+            "beta5": 100
         }
     },
     "EField_config": {
@@ -83,7 +87,7 @@
         "z_slice": 9
     },
     "it_start": 0,
-    "it_end": 400,
+    "it_end": 1000,
     "num_skip": 5,
     "plot_structures": true,
     "plot_solid_structures": false,
@@ -92,5 +96,5 @@
     "plot_z_field": true,
     "plot_y_field": false,
     "plot_x_field": false,
-    "full_path": "/home/sharkbait/Documents/code/dda_model/calculations/testVerify2HalfCylinder_it100_eps0.01_triangularPenalty_linearbeta"
+    "full_path": ""
 }

@@ -85,7 +85,7 @@ def plotGeometry(all_parameters, d, plot_path, iteration, angle1=225, angle2=45,
     ax.view_init(azim=angle1, elev=angle2)
     fig.colorbar(colorset, shrink=0.9, aspect=10, cax=ax.inset_axes([1.0, 0, 0.05, 0.8]))
     fig.suptitle(f'Structure at iteration {iteration}')
-    plt.savefig(os.path.join(plot_path, f"Structure{iteration}.png"), dpi=100)
+    plt.savefig(os.path.join(plot_path, f"Structure{str(iteration).zfill(5)}.png"), dpi=100)
 
 
 def EField_slice(E_tot, plot_path, iteration, index=0, axis='x', cbar_limits=None):
@@ -106,4 +106,4 @@ def EField_slice(E_tot, plot_path, iteration, index=0, axis='x', cbar_limits=Non
         plt.clim(cbar_limits[0], cbar_limits[1])
     plt.colorbar()
     plt.title(f'Field Enhancement at {axis}={index}, iteration {iteration}')
-    plt.savefig(os.path.join(plot_path, f"EField{iteration}_{axis}={index}.png"), dpi=100)
+    plt.savefig(os.path.join(plot_path, f"EField_{axis}={index}_{str(iteration).zfill(5)}.png"), dpi=100)
