@@ -21,59 +21,14 @@
     ],
     "wavelength": 542.0,
     "evo_max_iteration": 400,
-    "threshold_iteration": 50,
-    "ita": 0.5,
-    "filter_iteration": 50,
-    "filter_radii": {
-        "r1": 3,
-        "it1": 0,
-        "r2": 3,
-        "it2": 200
-    },
-    "step_size": 0.01,
-    "step_iteration": 100,
-    "base_path": "/home/sharkbait/Documents/code/dda_model/calculations",
-    "init_path": "initializations/halfcylinder.txt",
+    "base_path": "E:\\Calculations\\28June2024\\",
+    "init_path": "initializations\\halfcylinder.txt",
+    "diel_ext_im_path": "E:\\diel\\AirIm_eps" ,
+    "diel_ext_re_path": "E:\\diel\\AirRe_eps" ,
+    "diel_mat_im_path": "E:\\diel\\TiO2_ALD (raw)Im_eps" ,
+    "diel_mat_re_path": "E:\\diel\\TiO2_ALD (raw)Re_eps" ,
     "diel_ext": [1.01, 0], 
     "diel_mat": [5.96282, 3.80423e-7],
-    "beta_type": "piecewise_absolute",
-    "beta_configs": {
-        "constant": {
-            "beta_const": 0.1
-        },
-        "exp": {
-            "base": 100,
-            "iter_start": 0,
-            "iter_end": 300,
-            "beta_min": 0.0,
-            "beta_max": 1.0
-        },
-        "linear": {
-            "iter_start": 0,
-            "iter_end": 400,
-            "beta_min": 0.0,
-            "beta_max": 1.0
-        },
-        "piecewise": {
-            "frac1": 0.25,
-            "frac2": 0.5,
-            "frac3": 0.75,
-            "iter_end": 400,
-            "beta1": 0,
-            "beta2": 10,
-            "beta3": 20,
-            "beta4": 50
-        },
-        "piecewise_absolute": {
-            "iter1": 100,
-            "iter2": 200,
-            "iter3": 300,
-            "beta1": 0,
-            "beta2": 10,
-            "beta3": 20,
-            "beta4": 50
-        }
-    },
     "EField_config": {
         "E_limit": true,
         "E_limit_low": 0,
@@ -87,7 +42,6 @@
     "num_skip": 5,
     "plot_structures": true,
     "plot_solid_structures": false,
-    "plot_thresholds": true,
     "plot_fields": true,
     "plot_z_field": true,
     "plot_y_field": false,

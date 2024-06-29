@@ -1,20 +1,14 @@
 import dda_model
-from dda_model import optimizers
-from dda_model import binarizers
-
 
 import numpy as np
 import json
 from pathlib import Path
 import os
-import shutil
 import sys
-from scipy.signal import convolve2d
 from scipy import ndimage
 
 import matplotlib.pyplot as plt
 import plotting
-
 
 def _constructModel():
 
@@ -35,14 +29,6 @@ def _saveObjective(all_obj, path):
     curr_path = os.path.join(path, "Obj.txt")
     np.savetxt(curr_path, all_obj, delimiter='\n')
 
-def _saveBetas(all_betas, path):
-    curr_path = os.path.join(path, "betas.txt")
-    np.savetxt(curr_path, all_betas, delimiter='\n')
-
-def _saveFilterRadii(all_radii, path):
-    curr_path = os.path.join(path, "filter_radii.txt")
-    np.savetxt(curr_path, all_radii, delimiter='\n')
-
 def _saveCurrentStructure(all_parameters, path, iteration):
     curr_path = os.path.join(path, "Structures", f"Structure{iteration}.npy")
     np.save(curr_path, all_parameters)
@@ -55,31 +41,23 @@ def _saveAllParams(params, path, iteration):
     curr_path = os.path.join(path, "Parameters", f"Param{iteration}.npy")
     np.save(curr_path, params)
 
-def _saveParamsBeforeThreshold(params, path, iteration):
-    curr_path = os.path.join(path, "Parameters_Before_Threshold", f"Param{iteration}.npy")
-    np.save(curr_path, params)
-
 def _createDirectories(path):
-    directories = ['Structures', 'Parameters', 'Parameters_Before_Threshold', 'E-Fields']
+    directories = ['Structures', 'Parameters', 'E-Fields']
     for directory in directories:
         Path(os.path.join(path, directory)).mkdir(parents=True, exist_ok=True)
 
-def _calculateBeta(iteration, beta_type):
-    match beta_type:
-        case 'piecewise':
-            return binarizers.piecewise_update(iteration, beta_config)
-        case 'piecewise_absolute':
-            return binarizers.piecewise_update_absolute(iteration, beta_config)
-        case 'linear':
-            return binarizers.linear_update(iteration, beta_config)
-        case 'exp':
-            return binarizers.exp_update(iteration, beta_config)
-        case 'constant':
-            return beta_config["beta_const"]
+def _createPlotDirectories(path):
+    plot_dict = {
+            'Structures': plot_structures,
+            'SolidStructures': plot_solid_structures,
+            'E-Field_ZSlice': plot_z_field,
+            'E-Field_YSlice': plot_y_field,
+            'E-Field_XSlice': plot_x_field,
+        }
 
-def _saveStepSizes(all_step_sizes, path):
-    curr_path = os.path.join(path, "stepsizes.txt")
-    np.savetxt(curr_path, all_step_sizes, delimiter='\n')
+    for directory, flag in plot_dict.items():
+        if flag:
+            Path(os.path.join(path, directory)).mkdir(parents=True, exist_ok=True)
 
 def closed_range(start, stop):
     return range(start, stop + 1)
@@ -99,16 +77,27 @@ initialization = np.loadtxt(parsed_json["init_path"])
 diel_ext = parsed_json["diel_ext"]
 diel_mat = parsed_json["diel_mat"]
 dielectric_constants = [diel_ext[0] + diel_ext[1]*1j, diel_mat[0], diel_mat[1]*1j]
-
 evo_max_iter = parsed_json["evo_max_iteration"]
+
+# plotting flags
+plot_structures = parsed_json["plot_structures"]
+plot_solid_structures = parsed_json["plot_solid_structures"]
+plot_fields = parsed_json["plot_fields"]             # umbrella flag for no E-Field plots at all
+
+# Specific E-field plot flags
+plot_z_field = parsed_json["plot_z_field"]
+plot_y_field = parsed_json["plot_y_field"]
+plot_x_field = parsed_json["plot_x_field"]
 
 base_path = parsed_json["base_path"]
 run_name = parsed_json["run_name"]
 full_path = os.path.join(base_path, run_name)
 print("Saving value to path: " + full_path)
+data_path = os.path.join(full_path, "Data")
 plot_path = os.path.join(full_path, "Plots")
 Path(plot_path).mkdir(parents=True, exist_ok=True)
-
+_createDirectories(data_path)
+_createPlotDirectories(plot_path)
 
 
 model = _constructModel()
@@ -119,6 +108,9 @@ objective_value = model.objective()
 parameters = model.parameters
 print(f"Objective value of initialization is: {objective_value}")
 all_objective_values.append(objective_value)
+_saveCurrentStructure(model.allParameters(), data_path, 0)
+_saveCurrentEField(model.getElectricField(), data_path, 0)
+_saveAllParams(model.parameters, data_path, 0)
 
 '''
 Genetic algorithm (template).
@@ -226,15 +218,13 @@ num_offspring = 100
 num_population = 10
 flip_prob = 0.05
 filter_cadence = 20  # Design constraints are enforced every "cadence" iters.
+evo_max_iter = parsed_json["evo_max_iteration"]
 
-evo_max_iter = 101
 
-
-'''
 initial_design = model.parameters
 designs = [initial_design]
-'''
 
+'''
 # Generate random initializations as the initial population.
 parameter_shape = [11, 11]
 
@@ -252,6 +242,7 @@ for _ in range(num_population):
             continue
         init_successful = True
         designs.append(X)
+'''
 
 last_design_plotted = 0
 num_plotted = 0
@@ -281,13 +272,17 @@ for iteration in range(evo_max_iter):
     if not should_skip_plot:
         # This plot differs from the previous one.
         model.parameters = designs[0]
-        plotting.plotGeometry(model.allParameters(), pixel_size, plot_path, num_plotted)
+        plotting.plotGeometry(model.allParameters(), pixel_size, os.path.join(plot_path, "Structures"), num_plotted)
         # Hacky way to re-save the plot but with a new title.
         plt.suptitle(f'Iteration {iteration+1}, Obj={max(objectives):.4f}')
-        plt.savefig(os.path.join(plot_path, f"Structure{num_plotted}.png"), dpi=100)
+        plt.savefig(os.path.join(plot_path, "Structures", f"Structure{num_plotted}.png"), dpi=100)
         plt.close()
-        np.save(os.path.join(plot_path, f"design_{num_plotted}.npy"), designs[0])
+        #np.save(os.path.join(plot_path, f"design_{num_plotted}.npy"), designs[0])
+        _saveCurrentStructure(model.allParameters(), data_path, iteration)
+        _saveCurrentEField(model.getElectricField(), data_path, iteration)
+        _saveAllParams(model.parameters, data_path, iteration)
         num_plotted += 1
         last_design_plotted = designs[0]
 
-print(all_objective_values)
+_saveObjective(all_objective_values, data_path)
+plotting.plotObjectiveFunction(evo_max_iter, data_path, plot_path)

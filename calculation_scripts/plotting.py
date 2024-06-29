@@ -21,39 +21,6 @@ def plotObjectiveFunction(max_iterations, data_path, plot_path, **kwargs):
     _plot_series(iterations, obj, "Quality Function", "Quality", "Iteration", **kwargs)
     plt.savefig(os.path.join(plot_path, "obj.png"), bbox_inches='tight')
 
-def plotStepSizes(max_iterations, data_path, plot_path, **kwargs):
-    stepsizes = np.loadtxt(os.path.join(data_path, "stepsizes.txt"))
-    iterations = np.arange(max_iterations)
-    _plot_series(iterations, stepsizes, "Step Size", "Step Size", "Iteration", **kwargs)
-    plt.savefig(os.path.join(plot_path, "stepsizes.png"), bbox_inches='tight')
-
-def plotFilterRadii(max_iterations, data_path, plot_path, **kwargs):
-    filter_radii = np.loadtxt(os.path.join(data_path, "filter_radii.txt"))
-    iterations = np.arange(max_iterations)
-    _plot_series(iterations, filter_radii, "Filter Radii", "Radius", "Iteration", **kwargs)
-    plt.savefig(os.path.join(plot_path, "filter_radii.png"), bbox_inches='tight')
-
-def plotBetas(max_iterations, data_path, plot_path, **kwargs):
-    beta_values = np.loadtxt(os.path.join(data_path, "betas.txt"))
-    iterations = np.arange(max_iterations)
-    _plot_series(iterations, beta_values, "Beta Values for Thresholding", "Beta", "Iteration", **kwargs)
-    plt.savefig(os.path.join(plot_path, "betas.png"), bbox_inches='tight')
-
-def plotThresholds(iteration, ita, beta, data_path, plot_path):
-    print(f'Plotting Threshold at iteration {iteration}')
-    x_values = np.linspace(0, 1, num=200)
-    threshold_shape = binarizers.smooth_thresholding(x_values, ita, beta)
-    params_before_thresholding = np.load(os.path.join(data_path, 'Parameters_Before_Threshold', f'Param{iteration}.npy'))
-    params_after_thresholding = np.load(os.path.join(data_path, 'Parameters', f"Param{iteration}.npy"))
-    plt.figure()
-    plt.plot(x_values, threshold_shape)
-    plt.plot(params_before_thresholding, params_after_thresholding, 'o', color='orange')
-    plt.title(f'Thresholding at iteration {iteration}, $\\beta$ = {beta}')
-    plt.ylabel("Thresholded Parameters")
-    plt.xlabel("Parameters")
-    plt.savefig(os.path.join(plot_path, 'Thresholded_Parameters', f"Threshold{iteration}.png"), bbox_inches='tight')
-    plt.close()
-
 def plotGeometry(all_parameters, d, plot_path, iteration, angle1=225, angle2=45, fill_zeros=True):
     num_x, num_y, num_z = all_parameters.shape
     X, Y, Z = d*np.indices((num_x+1, num_y+1, num_z+1))

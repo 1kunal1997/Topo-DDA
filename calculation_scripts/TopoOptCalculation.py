@@ -8,6 +8,7 @@ import os
 import shutil
 import sys
 from scipy.signal import convolve2d
+import scipy.interpolate
 
 def _constructModel():
 
@@ -74,6 +75,9 @@ def _saveStepSizes(all_step_sizes, path):
     curr_path = os.path.join(path, "stepsizes.txt")
     np.savetxt(curr_path, all_step_sizes, delimiter='\n')
 
+def interp_diels(wl, diel):
+    diel_interp = scipy.interpolate.interp1d(wl, diel)
+
 def closed_range(start, stop):
     return range(start, stop + 1)
 
@@ -91,10 +95,19 @@ wavelength = parsed_json["wavelength"]
 #initialization = np.loadtxt("initializations/halfcylinder.txt")
 initialization = np.loadtxt(parsed_json["init_path"])
 #initialization += np.random.uniform(0, 10e-3, size=initialization.shape)
-diel_ext = parsed_json["diel_ext"]
-diel_mat = parsed_json["diel_mat"]
-dielectric_constants = [diel_ext[0] + diel_ext[1]*1j, diel_mat[0], diel_mat[1]*1j]
-#dielectric_constants = [1.01 + 0j, 5.96282 + 3.80423e-7j]
+#diel_ext = parsed_json["diel_ext"]
+#diel_mat = parsed_json["diel_mat"]
+wl, diel_ext_im = np.loadtxt(parsed_json["diel_ext_im_path"], delimiter=' ', unpack=True)
+wl, diel_ext_re = np.loadtxt(parsed_json["diel_ext_re_path"], delimiter=' ', unpack=True)
+wl, diel_mat_im = np.loadtxt(parsed_json["diel_mat_im_path"], delimiter=' ', unpack=True)
+wl, diel_mat_re = np.loadtxt(parsed_json["diel_mat_re_path"], delimiter=' ', unpack=True)
+diel_ext_im = scipy.interpolate.interp1d(wl, diel_ext_im)
+diel_ext_re = scipy.interpolate.interp1d(wl, diel_ext_re)
+diel_mat_im = scipy.interpolate.interp1d(wl, diel_mat_im)
+diel_mat_re = scipy.interpolate.interp1d(wl, diel_mat_re)
+
+#dielectric_constants = [diel_ext[0] + diel_ext[1]*1j, diel_mat[0], diel_mat[1]*1j]
+dielectric_constants = [diel_ext_re(wavelength) + diel_ext_im(wavelength)*1j, diel_mat_re(wavelength), diel_mat_im(wavelength)*1j]
 base_path = parsed_json["base_path"]
 
 #stepArray = np.logspace(-2, 0, 20)
