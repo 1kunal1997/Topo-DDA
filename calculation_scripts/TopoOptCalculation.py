@@ -8,6 +8,7 @@ import os
 import shutil
 import sys
 from scipy.signal import convolve2d
+import scipy.interpolate
 
 def _constructModel():
 
@@ -94,7 +95,25 @@ initialization = np.loadtxt(parsed_json["init_path"])
 diel_ext = parsed_json["diel_ext"]
 diel_mat = parsed_json["diel_mat"]
 dielectric_constants = [diel_ext[0] + diel_ext[1]*1j, diel_mat[0], diel_mat[1]*1j]
-#dielectric_constants = [1.01 + 0j, 5.96282 + 3.80423e-7j]
+
+'''
+wl, diel_ext_im = np.loadtxt(parsed_json["diel_ext_im_path"], delimiter=' ', unpack=True)
+diel_ext_im = scipy.interpolate.interp1d(wl, diel_ext_im)
+wl, diel_ext_re = np.loadtxt(parsed_json["diel_ext_re_path"], delimiter=' ', unpack=True)
+diel_ext_re = scipy.interpolate.interp1d(wl, diel_ext_re)
+wl, diel_mat_im = np.loadtxt(parsed_json["diel_mat_im_path"], delimiter=' ', unpack=True)
+diel_mat_im = scipy.interpolate.interp1d(wl, diel_mat_im)
+wl, diel_mat_re = np.loadtxt(parsed_json["diel_mat_re_path"], delimiter=' ', unpack=True)
+diel_mat_re = scipy.interpolate.interp1d(wl, diel_mat_re)
+
+wavelength_meters = wavelength*1e-9
+diel_ext = diel_ext_re(wavelength_meters) + diel_ext_im(wavelength_meters)*1j
+print(diel_ext)
+diel_mat = diel_mat_re(wavelength_meters) + diel_mat_im(wavelength_meters)*1j
+print(diel_mat)
+dielectric_constants = [diel_ext, diel_mat]
+'''
+
 base_path = parsed_json["base_path"]
 
 #stepArray = np.logspace(-2, 0, 20)
