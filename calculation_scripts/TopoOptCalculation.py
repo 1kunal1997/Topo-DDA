@@ -92,11 +92,7 @@ wavelength = parsed_json["wavelength"]
 #initialization = np.loadtxt("initializations/halfcylinder.txt")
 initialization = np.loadtxt(parsed_json["init_path"])
 #initialization += np.random.uniform(0, 10e-3, size=initialization.shape)
-diel_ext = parsed_json["diel_ext"]
-diel_mat = parsed_json["diel_mat"]
-dielectric_constants = [diel_ext[0] + diel_ext[1]*1j, diel_mat[0], diel_mat[1]*1j]
 
-'''
 wl, diel_ext_im = np.loadtxt(parsed_json["diel_ext_im_path"], delimiter=' ', unpack=True)
 diel_ext_im = scipy.interpolate.interp1d(wl, diel_ext_im)
 wl, diel_ext_re = np.loadtxt(parsed_json["diel_ext_re_path"], delimiter=' ', unpack=True)
@@ -112,7 +108,7 @@ print(diel_ext)
 diel_mat = diel_mat_re(wavelength_meters) + diel_mat_im(wavelength_meters)*1j
 print(diel_mat)
 dielectric_constants = [diel_ext, diel_mat]
-'''
+
 
 base_path = parsed_json["base_path"]
 
