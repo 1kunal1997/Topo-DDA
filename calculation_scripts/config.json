@@ -20,10 +20,10 @@
         0
     ],
     "wavelength": 542.0,
-    "evo_max_iteration": 1000,
-    "threshold_iteration": 100,
+    "evo_max_iteration": 400,
+    "threshold_iteration": 50,
     "ita": 0.5,
-    "filter_iteration": 100,
+    "filter_iteration": 50,
     "filter_radii": {
         "r1": 3,
         "it1": 0,
@@ -31,12 +31,22 @@
         "it2": 200
     },
     "step_size": 0.01,
-    "step_iteration": 1001,
-    "base_path": "E:\\Calculations\\IHT+Filter\\2024June07\\RandomInitUniform_it1000_step0.01constant_thresiter100_0_3_5_10_100_filteriter100_r3\\",
+    "step_iteration": 100,
+    "base_path": "E:\\Calculations\\IHT+Filter\\multi_wavelength_opt\\2024July01\\run1\\",
     "init_path": "initializations\\halfcylinder.txt",
-    "diel_ext": [1.01, 0], 
-    "diel_mat": [5.96282, 3.80423e-7],
-    "beta_type": "piecewise_absolute",
+    "diel_ext": [
+        1.01,
+        0
+    ],
+    "diel_mat": [
+        5.96282,
+        3.80423e-07
+    ],
+    "diel_ext_im_path": "E:\\diel\\AirIm_eps.txt",
+    "diel_ext_re_path": "E:\\diel\\AirRe_eps.txt",
+    "diel_mat_im_path": "E:\\diel\\TiO2_ALD (raw)Im_eps.txt",
+    "diel_mat_re_path": "E:\\diel\\TiO2_ALD (raw)Re_eps.txt",
+    "beta_type": "piecewise",
     "beta_configs": {
         "constant": {
             "beta_const": 0.1
@@ -64,7 +74,7 @@
             "beta2": 3,
             "beta3": 5,
             "beta4": 20,
-            "beta5": 100
+            "beta5": 20
         },
         "piecewise_absolute": {
             "iter1": 200,
@@ -87,7 +97,7 @@
         "z_slice": 9
     },
     "it_start": 0,
-    "it_end": 1000,
+    "it_end": 400,
     "num_skip": 5,
     "plot_structures": true,
     "plot_solid_structures": false,
@@ -96,5 +106,5 @@
     "plot_z_field": true,
     "plot_y_field": false,
     "plot_x_field": false,
-    "full_path": ""
+    "full_path": "E:\\Calculations\\IHT+Filter\\multi_wavelength_opt\\2024July01\\run1\\"
 }
