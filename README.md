@@ -74,3 +74,20 @@ tests from within the  `python_tests` subdirectory.
 cd python_tests
 python -m pytest . -s
 ```
+
+To run the vizier experiments, you'll need to run
+```
+pip install 'google-vizier[jax]'
+```
+inside your conda environment. In order to get Vizier to see the GPU, I also
+had to run 
+```
+pip install "jax[cuda12]" --upgrade
+```
+If you want to use BOCS / Harmonica
+```
+pip install cvxpy
+pip install cvxopt
+pip install scikit-learn
+```
+
