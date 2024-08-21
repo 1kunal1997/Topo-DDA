@@ -20,26 +20,26 @@
         0
     ],
     "wavelength": 542.0,
-    "evo_max_iteration": 400,
-    "base_path": "E:\\Calculations\\28June2024\\",
-    "init_path": "initializations\\halfcylinder.txt",
-    "diel_ext_im_path": "E:\\diel\\AirIm_eps" ,
-    "diel_ext_re_path": "E:\\diel\\AirRe_eps" ,
-    "diel_mat_im_path": "E:\\diel\\TiO2_ALD (raw)Im_eps" ,
-    "diel_mat_re_path": "E:\\diel\\TiO2_ALD (raw)Re_eps" ,
+    "evo_max_iteration": 1,
+    "base_path": "E:\\Calculations\\",
+    "init_path": "E:\\initializations\\hourglass.txt",
+    "diel_ext_im_path": "E:\\diel\\AirIm_eps.txt" ,
+    "diel_ext_re_path": "E:\\diel\\AirRe_eps.txt" ,
+    "diel_mat_im_path": "E:\\diel\\TiO2_ALD (raw)Im_eps.txt" ,
+    "diel_mat_re_path": "E:\\diel\\TiO2_ALD (raw)Re_eps.txt" ,
     "diel_ext": [1.01, 0], 
     "diel_mat": [5.96282, 3.80423e-7],
     "EField_config": {
         "E_limit": true,
         "E_limit_low": 0,
-        "E_limit_high": 16,
+        "E_limit_high": 8,
         "x_slice": 11,
         "y_slice": 11,
         "z_slice": 9
     },
     "it_start": 0,
-    "it_end": 400,
-    "num_skip": 5,
+    "it_end": 1,
+    "num_skip": 1,
     "plot_structures": true,
     "plot_solid_structures": false,
     "plot_fields": true,
@@ -47,5 +47,5 @@
     "plot_y_field": false,
     "plot_x_field": false,
     "full_path": "",
-    "run_name": "genetic_14"
+    "run_name": "uniform_window_plusminus_2nm"
 }

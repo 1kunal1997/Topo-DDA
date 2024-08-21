@@ -6,11 +6,27 @@ from pathlib import Path
 import os
 import sys
 from scipy import ndimage
+import scipy.interpolate
 
 import matplotlib.pyplot as plt
 import plotting
 
-def _constructModel():
+def _constructAllModels(wavelength_array):
+    all_models = []
+    for wavelength in wavelength_array:
+        wavelength_meters = wavelength*1e-9
+        diel_ext = diel_ext_re(wavelength_meters) + diel_ext_im(wavelength_meters)*1j
+        print(f"Dielectric of external medium at wavelength {wavelength}nm is: {diel_ext}")
+        diel_mat = diel_mat_re(wavelength_meters) + diel_mat_im(wavelength_meters)*1j
+        print(f"Dielectric of material at wavelength {wavelength}nm is: {diel_mat}")
+
+        dielectric_constants = [diel_ext, diel_mat]
+        model = _constructModel(wavelength, dielectric_constants)
+        all_models.append(model)
+
+    return all_models
+
+def _constructModel(wavelength, dielectric_constants):
 
     model = dda_model.DDAModelWrapper(
         geometry_shape,
@@ -74,9 +90,15 @@ light_direction = parsed_json["light_direction"]
 light_polarization = parsed_json["light_polarization"]
 wavelength = parsed_json["wavelength"]
 initialization = np.loadtxt(parsed_json["init_path"])
-diel_ext = parsed_json["diel_ext"]
-diel_mat = parsed_json["diel_mat"]
-dielectric_constants = [diel_ext[0] + diel_ext[1]*1j, diel_mat[0], diel_mat[1]*1j]
+
+wl, diel_ext_im = np.loadtxt(parsed_json["diel_ext_im_path"], delimiter=' ', unpack=True)
+diel_ext_im = scipy.interpolate.interp1d(wl, diel_ext_im)
+wl, diel_ext_re = np.loadtxt(parsed_json["diel_ext_re_path"], delimiter=' ', unpack=True)
+diel_ext_re = scipy.interpolate.interp1d(wl, diel_ext_re)
+wl, diel_mat_im = np.loadtxt(parsed_json["diel_mat_im_path"], delimiter=' ', unpack=True)
+diel_mat_im = scipy.interpolate.interp1d(wl, diel_mat_im)
+wl, diel_mat_re = np.loadtxt(parsed_json["diel_mat_re_path"], delimiter=' ', unpack=True)
+diel_mat_re = scipy.interpolate.interp1d(wl, diel_mat_re)
 evo_max_iter = parsed_json["evo_max_iteration"]
 
 # plotting flags
@@ -99,18 +121,33 @@ Path(plot_path).mkdir(parents=True, exist_ok=True)
 _createDirectories(data_path)
 _createPlotDirectories(plot_path)
 
-
-model = _constructModel()
-all_objective_values = []
+weight_array = [0.2, 0.2, 0.2, 0.2, 0.2]
+#weight_array = [1]
+wavelength_array = [wavelength-2, wavelength-1, wavelength, wavelength+1, wavelength+2]
+#wavelength_array = [wavelength]
+center_index = wavelength_array.index(wavelength)
+all_models = _constructAllModels(wavelength_array)
+#model = _constructModel()
+# stores the weighted average of the objective values for each structure
+avg_objective_values = []
+# stores objective values from all wavelengths for each structure
+#all_objective_values = [[0]*len(wavelength_array)]
+objective_value = 0
 
 # Calculate objective value of initialization and save data as iteration 0
-objective_value = model.objective()
-parameters = model.parameters
-print(f"Objective value of initialization is: {objective_value}")
-all_objective_values.append(objective_value)
-_saveCurrentStructure(model.allParameters(), data_path, 0)
-_saveCurrentEField(model.getElectricField(), data_path, 0)
-_saveAllParams(model.parameters, data_path, 0)
+
+# objective value is now a weighted average over obj values over all wavelengths of interest
+for i, weight in enumerate (weight_array):
+    curr_objective = all_models[i].objective()
+    #all_objective_values[0][i] = curr_objective
+    objective_value += weight*(curr_objective)
+
+parameters = all_models[center_index].parameters
+print(f"Gaussian average objective value of initialization is: {objective_value}")
+avg_objective_values.append(objective_value)
+_saveCurrentStructure(all_models[center_index].allParameters(), data_path, 0)
+_saveCurrentEField(all_models[center_index].getElectricField(), data_path, 0)
+_saveAllParams(parameters, data_path, 0)
 
 '''
 Genetic algorithm (template).
@@ -187,7 +224,7 @@ def dedupe_designs(designs_list):
             unique_designs.append(design)
     return unique_designs
 
-def prune_designs(designs_list, model, num_population, remove_islands=False, max_island_size=1):
+def prune_designs(designs_list, all_models, num_population, remove_islands=False, max_island_size=1):
     # Kill all children except the top num_population children.
     def padded_morph_op(x, operation):
         # operation: one of ndimage.binary_opening, binary_closing, etc.
@@ -204,8 +241,11 @@ def prune_designs(designs_list, model, num_population, remove_islands=False, max
     for design in designs_list:
         if remove_islands:
             design = closing(opening(design)).astype(float)
-        model.parameters = design
-        objective_value = model.objective()
+        objective_value = 0
+        for i, model in enumerate(all_models):
+            model.parameters = design
+            objective_value += weight_array[i]*(model.objective())
+        #model.parameters = design
         evaluated_designs.append((objective_value, design))
     # sort the designs
     evaluated_designs.sort(key=lambda x:x[0])
@@ -221,7 +261,7 @@ filter_cadence = 20  # Design constraints are enforced every "cadence" iters.
 evo_max_iter = parsed_json["evo_max_iteration"]
 
 
-initial_design = model.parameters
+initial_design = parameters
 designs = [initial_design]
 
 '''
@@ -254,13 +294,13 @@ for iteration in range(evo_max_iter):
     designs.extend(new_designs)  # Include the old designs in the population.
     remove_islands = (iteration%filter_cadence == 0)
     designs, objectives = prune_designs(
-        designs, model, num_population,
+        designs, all_models, num_population,
         remove_islands=remove_islands,
         max_island_size=1,
     )
 
     # Plot the best one.
-    all_objective_values.append(max(objectives))
+    avg_objective_values.append(max(objectives))
 
     print("Objective values:")
     for i, (v, d) in enumerate(zip(objectives, designs)):
@@ -271,18 +311,18 @@ for iteration in range(evo_max_iter):
     should_skip_plot = (np.sum((last_design_plotted - designs[0])**2) < 10e-6)
     if not should_skip_plot:
         # This plot differs from the previous one.
-        model.parameters = designs[0]
-        plotting.plotGeometry(model.allParameters(), pixel_size, os.path.join(plot_path, "Structures"), num_plotted)
+        all_models[center_index].parameters = designs[0]
+        plotting.plotGeometry(all_models[center_index].allParameters(), pixel_size, os.path.join(plot_path, "Structures"), num_plotted)
         # Hacky way to re-save the plot but with a new title.
         plt.suptitle(f'Iteration {iteration+1}, Obj={max(objectives):.4f}')
         plt.savefig(os.path.join(plot_path, "Structures", f"Structure{num_plotted}.png"), dpi=100)
         plt.close()
         #np.save(os.path.join(plot_path, f"design_{num_plotted}.npy"), designs[0])
-        _saveCurrentStructure(model.allParameters(), data_path, iteration)
-        _saveCurrentEField(model.getElectricField(), data_path, iteration)
-        _saveAllParams(model.parameters, data_path, iteration)
+        _saveCurrentStructure(all_models[center_index].allParameters(), data_path, iteration)
+        _saveCurrentEField(all_models[center_index].getElectricField(), data_path, iteration)
+        _saveAllParams(all_models[center_index].parameters, data_path, iteration)
         num_plotted += 1
         last_design_plotted = designs[0]
 
-_saveObjective(all_objective_values, data_path)
+_saveObjective(avg_objective_values, data_path)
 plotting.plotObjectiveFunction(evo_max_iter, data_path, plot_path)
