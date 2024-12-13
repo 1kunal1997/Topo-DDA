@@ -5,6 +5,7 @@ import numpy as np
 import json
 from pathlib import Path
 import os
+import shutil
 import sys
 
 def _constructModel():
@@ -58,24 +59,24 @@ def _savePenaltyShape(penalty_type, path):
             np.savetxt(curr_path, table, delimiter=',')
 
 def _saveCurrentStructure(all_parameters, path, iteration):
-    curr_path = os.path.join(path, "Structures", f"Structure{iteration}.txt")
-    np.savetxt(curr_path, all_parameters, delimiter='\n')
+    curr_path = os.path.join(path, "Structures", f"Structure{iteration}.npy")
+    np.save(curr_path, all_parameters)
 
 def _saveCurrentEField(electric_field, path, iteration):
-    curr_path = os.path.join(path, f"E-Fields", f"E-Field{iteration}.txt")
-    np.savetxt(curr_path, electric_field, delimiter='\n')
+    curr_path = os.path.join(path, f"E-Fields", f"E-Field{iteration}.npy")
+    np.save(curr_path, electric_field)
 
 def _saveAllPenalties(penalty, path, iteration):
-    curr_path = os.path.join(path, "Penalties", f"Penalty{iteration}.txt")
-    np.savetxt(curr_path, penalty, delimiter='\n')
+    curr_path = os.path.join(path, "Penalties", f"Penalty{iteration}.npy")
+    np.save(curr_path, penalty)
 
 def _saveAllParams(params, path, iteration):
-    curr_path = os.path.join(path, "Parameters", f"Param{iteration}.txt")
-    np.savetxt(curr_path, params, delimiter='\n')
+    curr_path = os.path.join(path, "Parameters", f"Param{iteration}.npy")
+    np.save(curr_path, params)
 
 def _savePenaltyGradients(penalty_gradients, path, iteration):
-    curr_path = os.path.join(path, "Gradient_Penalties", f"Gradient{iteration}.txt")
-    np.savetxt(curr_path, penalty_gradients, delimiter='\n')
+    curr_path = os.path.join(path, "Gradient_Penalties", f"Gradient{iteration}.npy")
+    np.save(curr_path, penalty_gradients)
 
 def _createDirectories(path):
     directories = ['Structures', 'Parameters', 'Penalties', 'Gradient_Penalties', 'E-Fields']
@@ -148,7 +149,7 @@ evo_max_iter = parsed_json["evo_max_iteration"]
 penalty_config = parsed_json["penalty_configs"][penalty_type]
 coeff_config = parsed_json["coeff_configs"][coeff_type]
         
-full_path = base_path + f"Verify2HalfCylinder_it{evo_max_iter}_eps{step_size}_{penalty_type}Penalty_{coeff_type}Coeff"
+full_path = base_path + f"VerifyFilterApi_HalfCylinder_it{evo_max_iter}_eps{step_size}_{penalty_type}Penalty_{coeff_type}Coeff"
 print("Saving value to path: " + full_path)
 data_path = os.path.join(full_path, "Data")
 _createDirectories(data_path)
@@ -220,7 +221,7 @@ with open(json_file, "w", encoding='utf-8') as jsonFile:
     json.dump(parsed_json, jsonFile, ensure_ascii=False, indent=4)
 
 copied_json_file = os.path.join(full_path, 'config.json')
-os.popen(f'copy {json_file} {copied_json_file}')
+shutil.copyfile(json_file, copied_json_file)
     
 
 
